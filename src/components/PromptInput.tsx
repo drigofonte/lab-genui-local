@@ -55,8 +55,8 @@ export function PromptInput({ onGenerate, isLoading, progress }: PromptInputProp
           {progress?.phase === "thinking" && progress.thinkingContent.length > 0 && (
             <span className="text-xs">({progress.thinkingContent.length} chars)</span>
           )}
-          {progress?.phase === "generating" && progress.generatedContent.length > 0 && (
-            <span className="text-xs">({progress.generatedContent.length} chars)</span>
+          {progress?.phase === "generating" && progress.rawLines.length > 0 && (
+            <span className="text-xs">({progress.rawLines.length} patches)</span>
           )}
         </div>
       )}

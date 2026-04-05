@@ -9,22 +9,27 @@ interface DebugPanelProps {
   rawJson: string | null;
   error: string | null;
   systemPrompt: string | null;
-  streamContent: string | null;
+  /** Live JSONL lines during streaming */
+  streamLines: string[] | null;
   thinkingContent: string | null;
 }
 
-export function DebugPanel({ rawJson, error, systemPrompt, streamContent, thinkingContent }: DebugPanelProps) {
-  // Show streaming content while generating, final JSON when done
-  const jsonDisplay = streamContent || rawJson;
+export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent }: DebugPanelProps) {
+  const isStreaming = streamLines !== null && streamLines.length > 0;
   const hasThinking = thinkingContent && thinkingContent.length > 0;
+
+  // During streaming show JSONL lines; after completion show formatted JSON
+  const jsonDisplay = isStreaming
+    ? streamLines.join("\n")
+    : rawJson;
 
   return (
     <div className="rounded-lg border bg-card">
       <Tabs defaultValue="json" className="w-full">
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2">
           <TabsTrigger value="json" className="text-xs">
-            Raw JSON
-            {streamContent && (
+            {isStreaming ? "JSONL Patches" : "Raw JSON"}
+            {isStreaming && (
               <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
             )}
           </TabsTrigger>
@@ -51,7 +56,7 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamContent, thinki
             </pre>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No response yet. Generate a UI to see the raw JSON.
+              No response yet. Generate a UI to see the raw output.
             </p>
           )}
         </TabsContent>
