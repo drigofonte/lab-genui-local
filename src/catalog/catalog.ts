@@ -10,7 +10,7 @@ import { z } from "zod";
  * with custom definitions for Metric and BarGraph.
  */
 export const catalog = defineCatalog(schema, {
-  actions: {},
+  actions: {}, // Required by json-render schema, not used in spike
   components: {
     // From @json-render/shadcn
     Card: shadcnComponentDefinitions.Card,

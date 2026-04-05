@@ -71,7 +71,7 @@ export async function generateUI(prompt: string): Promise<GenerationResult> {
     if (result.success) {
       return {
         status: "success",
-        spec: result.data!,
+        spec: result.data as AppSpec,
         rawJson: JSON.stringify(parsed, null, 2),
         systemPrompt,
       };
