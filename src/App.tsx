@@ -15,11 +15,17 @@ function App() {
 
   const handleProgress = useCallback((p: StreamProgress) => {
     setProgress(p);
+    // Progressive rendering: update spec as patches arrive
+    if (p.spec) {
+      setSpec(p.spec);
+    }
   }, []);
 
   async function handleGenerate(prompt: string) {
     setIsLoading(true);
     setError(null);
+    setSpec(null);
+    setRawJson(null);
     setProgress(null);
 
     const result: GenerationResult = await generateUI(prompt, handleProgress);
@@ -69,7 +75,7 @@ function App() {
               rawJson={rawJson}
               error={error}
               systemPrompt={systemPrompt}
-              streamContent={progress?.generatedContent ?? null}
+              streamLines={progress?.rawLines ?? null}
               thinkingContent={progress?.thinkingContent ?? null}
             />
           </div>

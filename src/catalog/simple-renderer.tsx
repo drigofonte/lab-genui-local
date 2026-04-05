@@ -112,7 +112,9 @@ const COMPONENTS: Record<string, React.ComponentType<{ props: any; children?: Re
 };
 
 function RenderElement({ spec, elementKey }: { spec: AppSpec; elementKey: string }) {
-  const element = (spec.elements as any)[elementKey];
+  const elements = spec.elements as Record<string, any> | undefined;
+  if (!elements) return null;
+  const element = elements[elementKey];
   if (!element) return null;
 
   const Component = COMPONENTS[element.type];
