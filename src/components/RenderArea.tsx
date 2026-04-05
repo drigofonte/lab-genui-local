@@ -1,4 +1,4 @@
-import { AppRenderer } from "@/catalog/registry";
+import { SimpleRenderer } from "@/catalog/simple-renderer";
 import type { AppSpec } from "@/catalog/catalog";
 
 interface RenderAreaProps {
@@ -16,7 +16,7 @@ export function RenderArea({ spec }: RenderAreaProps) {
 
   return (
     <div className="rounded-lg border p-4">
-      <AppRenderer spec={spec as never} />
+      <SimpleRenderer spec={spec} />
     </div>
   );
 }

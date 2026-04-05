@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { PromptInput } from "@/components/PromptInput";
 import { RenderArea } from "@/components/RenderArea";
 import { DebugPanel } from "@/components/DebugPanel";
-import { generateUI, type GenerationResult } from "@/adapter/ollama";
+import { generateUI, type GenerationResult, type StreamProgress } from "@/adapter/ollama";
 import type { AppSpec } from "@/catalog/catalog";
 
 function App() {
@@ -11,12 +11,18 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState<StreamProgress | null>(null);
+
+  const handleProgress = useCallback((p: StreamProgress) => {
+    setProgress(p);
+  }, []);
 
   async function handleGenerate(prompt: string) {
     setIsLoading(true);
     setError(null);
+    setProgress(null);
 
-    const result: GenerationResult = await generateUI(prompt);
+    const result: GenerationResult = await generateUI(prompt, handleProgress);
     setSystemPrompt(result.systemPrompt);
 
     if (result.status === "success") {
@@ -30,6 +36,7 @@ function App() {
     }
 
     setIsLoading(false);
+    setProgress(null);
   }
 
   return (
@@ -43,7 +50,7 @@ function App() {
         </header>
 
         <div className="mb-6">
-          <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+          <PromptInput onGenerate={handleGenerate} isLoading={isLoading} progress={progress} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -62,6 +69,8 @@ function App() {
               rawJson={rawJson}
               error={error}
               systemPrompt={systemPrompt}
+              streamContent={progress?.generatedContent ?? null}
+              thinkingContent={progress?.thinkingContent ?? null}
             />
           </div>
         </div>

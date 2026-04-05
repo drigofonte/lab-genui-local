@@ -1,6 +1,7 @@
 import { catalog, type AppSpec } from "@/catalog/catalog";
 import { MODEL_NAME, OLLAMA_BASE_URL, NUM_PREDICT } from "./config";
 import { formatSampleDataForPrompt } from "./sample-data";
+import { SYSTEM_PROMPT } from "./system-prompt";
 
 export type GenerationResult =
   | {
@@ -16,10 +17,25 @@ export type GenerationResult =
       systemPrompt: string;
     };
 
-export async function generateUI(prompt: string): Promise<GenerationResult> {
-  const systemPrompt = catalog.prompt();
+export type StreamPhase = "connecting" | "thinking" | "generating" | "done";
+
+export interface StreamProgress {
+  phase: StreamPhase;
+  thinkingContent: string;
+  generatedContent: string;
+}
+
+export type OnProgress = (progress: StreamProgress) => void;
+
+export async function generateUI(
+  prompt: string,
+  onProgress?: OnProgress
+): Promise<GenerationResult> {
+  const systemPrompt = SYSTEM_PROMPT;
   const sampleDataContext = formatSampleDataForPrompt();
   const userMessage = `${prompt}\n\n${sampleDataContext}`;
+
+  onProgress?.({ phase: "connecting", thinkingContent: "", generatedContent: "" });
 
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
@@ -31,7 +47,7 @@ export async function generateUI(prompt: string): Promise<GenerationResult> {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        stream: false,
+        stream: true,
         format: "json",
         options: {
           num_predict: NUM_PREDICT,
@@ -50,8 +66,81 @@ export async function generateUI(prompt: string): Promise<GenerationResult> {
       };
     }
 
-    const data = await response.json();
-    const rawContent: string = data.message?.content ?? "";
+    // Read the streaming response
+    let thinkingContent = "";
+    let generatedContent = "";
+    const reader = response.body?.getReader();
+    if (!reader) {
+      return {
+        status: "error",
+        rawResponse: "",
+        error: "No response body stream available",
+        systemPrompt,
+      };
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete lines (each line is a JSON object)
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? ""; // Keep incomplete last line in buffer
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        let chunk: any;
+        try {
+          chunk = JSON.parse(line);
+        } catch {
+          continue; // Skip malformed chunks
+        }
+
+        const message = chunk.message;
+        if (!message) continue;
+
+        if (message.thinking) {
+          thinkingContent += message.thinking;
+          onProgress?.({
+            phase: "thinking",
+            thinkingContent,
+            generatedContent,
+          });
+        }
+
+        if (message.content) {
+          generatedContent += message.content;
+          onProgress?.({
+            phase: "generating",
+            thinkingContent,
+            generatedContent,
+          });
+        }
+      }
+    }
+
+    onProgress?.({ phase: "done", thinkingContent, generatedContent });
+
+    const rawContent = generatedContent;
+
+    if (!rawContent.trim()) {
+      return {
+        status: "error",
+        rawResponse: thinkingContent
+          ? `Model produced thinking but no content output.\n\nThinking:\n${thinkingContent.slice(0, 500)}`
+          : "Ollama returned an empty response (no content).",
+        error: thinkingContent
+          ? `Model produced thinking but no JSON content. The thinking output was ${thinkingContent.length} chars. Check the Raw JSON tab for details.`
+          : "Ollama returned an empty response (no message content).",
+        systemPrompt,
+      };
+    }
 
     // Parse JSON
     let parsed: unknown;
@@ -61,7 +150,7 @@ export async function generateUI(prompt: string): Promise<GenerationResult> {
       return {
         status: "error",
         rawResponse: rawContent,
-        error: `Failed to parse JSON from LLM response: ${rawContent.slice(0, 200)}`,
+        error: `Failed to parse JSON from LLM response:\n${rawContent.slice(0, 1000)}`,
         systemPrompt,
       };
     }

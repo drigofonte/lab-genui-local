@@ -20,13 +20,16 @@ const trendColors: Record<string, string> = {
 };
 
 export function Metric({ props }: BaseComponentProps<MetricProps>) {
+  const label = props.label ?? "—";
+  const value = props.value ?? "—";
+
   return (
     <div className="rounded-lg border bg-card p-4">
-      <p className="text-sm text-muted-foreground">{props.label}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-2xl font-bold">{props.value}</span>
-        {props.trend && (
-          <span className={`text-sm font-medium ${trendColors[props.trend]}`}>
+        <span className="text-2xl font-bold">{value}</span>
+        {props.trend && trendIcons[props.trend] && (
+          <span className={`text-sm font-medium ${trendColors[props.trend] ?? ""}`}>
             {trendIcons[props.trend]}
           </span>
         )}

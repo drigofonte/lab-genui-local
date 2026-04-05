@@ -7,7 +7,17 @@ interface BarGraphProps {
 }
 
 export function BarGraph({ props }: BaseComponentProps<BarGraphProps>) {
-  const maxValue = Math.max(...props.data.map((d) => d.value), 1);
+  const data = Array.isArray(props.data) ? props.data : [];
+  if (data.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+        {props.title && <h3 className="mb-2 font-medium">{props.title}</h3>}
+        No data available
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...data.map((d) => d.value), 1);
   const barColor = props.color ?? "hsl(var(--primary))";
 
   return (
@@ -16,7 +26,7 @@ export function BarGraph({ props }: BaseComponentProps<BarGraphProps>) {
         <h3 className="mb-3 text-sm font-medium">{props.title}</h3>
       )}
       <div className="space-y-2">
-        {props.data.map((item, i) => (
+        {data.map((item, i) => (
           <div key={i} className="flex items-center gap-3">
             <span className="w-20 truncate text-sm text-muted-foreground">
               {item.label}

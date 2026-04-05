@@ -5,18 +5,29 @@ import { catalog } from "./catalog";
 import { Metric } from "./components/Metric";
 import { BarGraph } from "./components/BarGraph";
 
-// The shadcn components use BaseComponentProps<P> (wrapping props in { props: P })
-// while createRenderer expects ComponentRenderProps<P> (flat props).
-// These are structurally compatible at runtime — the type system is overly strict here.
+/**
+ * createRenderer passes props flat: (flatProps) => JSX
+ * shadcn components expect: ({ props, children, emit, on }) => JSX
+ *
+ * This wrapper bridges the two formats at runtime.
+ * Type casts are needed because the two APIs have incompatible signatures.
+ */
+function wrapShadcn(component: any): any {
+  return (flatProps: any) => {
+    const { children, ...rest } = flatProps;
+    return component({ props: rest, children, emit: () => {}, on: {} });
+  };
+}
+
 export const AppRenderer = createRenderer(catalog, {
-  Card: shadcnComponents.Card as any,
-  Table: shadcnComponents.Table as any,
-  Text: shadcnComponents.Text as any,
-  Heading: shadcnComponents.Heading as any,
-  Stack: shadcnComponents.Stack as any,
-  Grid: shadcnComponents.Grid as any,
-  Badge: shadcnComponents.Badge as any,
-  Separator: shadcnComponents.Separator as any,
-  Metric: Metric as any,
-  BarGraph: BarGraph as any,
+  Card: wrapShadcn(shadcnComponents.Card),
+  Table: wrapShadcn(shadcnComponents.Table),
+  Text: wrapShadcn(shadcnComponents.Text),
+  Heading: wrapShadcn(shadcnComponents.Heading),
+  Stack: wrapShadcn(shadcnComponents.Stack),
+  Grid: wrapShadcn(shadcnComponents.Grid),
+  Badge: wrapShadcn(shadcnComponents.Badge),
+  Separator: wrapShadcn(shadcnComponents.Separator),
+  Metric: wrapShadcn(Metric),
+  BarGraph: wrapShadcn(BarGraph),
 });
