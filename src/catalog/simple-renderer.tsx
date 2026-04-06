@@ -1,6 +1,18 @@
 import type { AppSpec } from "./catalog";
 import { Metric } from "./components/Metric";
 import { BarGraph } from "./components/BarGraph";
+import {
+  Stack as LayoutStack,
+  Box as LayoutBox,
+  Center as LayoutCenter,
+  Cluster as LayoutCluster,
+  Sidebar as LayoutSidebar,
+  Switcher as LayoutSwitcher,
+  Cover as LayoutCover,
+  Grid as LayoutGrid,
+  Frame as LayoutFrame,
+  Reel as LayoutReel,
+} from "../components/layout";
 
 /**
  * Simple spec renderer that bypasses json-render's createRenderer/Renderer.
@@ -10,7 +22,48 @@ import { BarGraph } from "./components/BarGraph";
  * directly and renders components with the correct prop shape.
  */
 
-// Simple shadcn-style components for layout (no dependency on @json-render/shadcn)
+// --- Every Layout wrappers (bridge { props, children } to flat-prop components) ---
+function Stack({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutStack space={props.space} recursive={props.recursive} splitAfter={props.splitAfter}>{children}</LayoutStack>;
+}
+
+function Box({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutBox padding={props.padding} borderWidth={props.borderWidth}>{children}</LayoutBox>;
+}
+
+function Center({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCenter maxWidth={props.maxWidth} centerText={props.centerText} gutters={props.gutters} intrinsic={props.intrinsic}>{children}</LayoutCenter>;
+}
+
+function Cluster({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCluster space={props.space} justify={props.justify} align={props.align}>{children}</LayoutCluster>;
+}
+
+function Sidebar({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutSidebar side={props.side} sideWidth={props.sideWidth} contentMin={props.contentMin} space={props.space}>{children}</LayoutSidebar>;
+}
+
+function Switcher({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutSwitcher threshold={props.threshold} space={props.space} limit={props.limit}>{children}</LayoutSwitcher>;
+}
+
+function Cover({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCover minHeight={props.minHeight} space={props.space} noPad={props.noPad}>{children}</LayoutCover>;
+}
+
+function Grid({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutGrid min={props.min} space={props.space}>{children}</LayoutGrid>;
+}
+
+function Frame({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutFrame ratio={props.ratio}>{children}</LayoutFrame>;
+}
+
+function Reel({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutReel itemWidth={props.itemWidth} space={props.space} height={props.height} noBar={props.noBar}>{children}</LayoutReel>;
+}
+
+// --- Data/content components ---
 function Card({ props, children }: { props: any; children?: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -23,25 +76,6 @@ function Card({ props, children }: { props: any; children?: React.ReactNode }) {
       <div className="p-6">{children}</div>
     </div>
   );
-}
-
-function Stack({ props, children }: { props: any; children?: React.ReactNode }) {
-  const isHorizontal = props.direction === "horizontal";
-  const gapMap: Record<string, string> = { none: "gap-0", sm: "gap-2", md: "gap-4", lg: "gap-6", xl: "gap-8" };
-  const gap = gapMap[props.gap ?? "md"] ?? "gap-4";
-  return (
-    <div className={`flex ${isHorizontal ? "flex-row" : "flex-col"} ${gap}`}>
-      {children}
-    </div>
-  );
-}
-
-function Grid({ props, children }: { props: any; children?: React.ReactNode }) {
-  const cols = props.columns ?? 1;
-  const gapMap: Record<string, string> = { sm: "gap-2", md: "gap-4", lg: "gap-6", xl: "gap-8" };
-  const gap = gapMap[props.gap ?? "md"] ?? "gap-4";
-  const colsMap: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5", 6: "grid-cols-6" };
-  return <div className={`grid ${colsMap[cols] ?? "grid-cols-1"} ${gap}`}>{children}</div>;
 }
 
 function Heading({ props }: { props: any }) {
@@ -99,9 +133,19 @@ function Separator() {
 }
 
 const COMPONENTS: Record<string, React.ComponentType<{ props: any; children?: React.ReactNode }>> = {
-  Card,
+  // Layout primitives
   Stack,
+  Box,
+  Center,
+  Cluster,
+  Sidebar,
+  Switcher,
+  Cover,
   Grid,
+  Frame,
+  Reel,
+  // Data/content
+  Card,
   Heading,
   Text,
   Badge,
