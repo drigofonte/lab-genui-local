@@ -1,7 +1,7 @@
 ---
 title: "feat: Design system foundation — Every Layout + CUBE CSS + Utopia + Tokens + Storybook"
 type: feat
-status: active
+status: completed
 date: 2026-04-07
 origin: docs/brainstorms/2026-04-05-design-system-requirements.md
 ---
@@ -155,7 +155,7 @@ Set up Storybook, write stories for all components.
 
 ### Phase 1: Tokens + Scales + CSS Foundation
 
-- [ ] **Unit 1: Design tokens JSON + CSS custom properties**
+- [x] **Unit 1: Design tokens JSON + CSS custom properties**
 
   **Goal:** Create the design token JSON file and its companion CSS file with all custom properties.
 
@@ -183,7 +183,7 @@ Set up Storybook, write stories for all components.
   - `tokens.json` contains all categories (colors, spacing, typography, borders, radii, shadows)
   - `tokens.css` defines CSS custom properties that can be imported
 
-- [ ] **Unit 2: Utopia fluid type and space scales**
+- [x] **Unit 2: Utopia fluid type and space scales**
 
   **Goal:** Generate Utopia fluid scales and add them as CSS custom properties.
 
@@ -210,7 +210,7 @@ Set up Storybook, write stories for all components.
   - Space values from --space-3xs to --space-3xl defined
   - All values use `clamp()` for fluid scaling
 
-- [ ] **Unit 3: CUBE CSS stylesheet structure**
+- [x] **Unit 3: CUBE CSS stylesheet structure**
 
   **Goal:** Reorganize the CSS into CUBE layers and add global composition rules.
 
@@ -245,7 +245,7 @@ Set up Storybook, write stories for all components.
 
 ### Phase 2: Every Layout React Components
 
-- [ ] **Unit 4: Every Layout React components (all 10)**
+- [x] **Unit 4: Every Layout React components (all 10)**
 
   **Goal:** Create React wrapper components for all 10 Every Layout primitives.
 
@@ -298,7 +298,7 @@ Set up Storybook, write stories for all components.
 
 ### Phase 3: Catalog + Renderer Integration
 
-- [ ] **Unit 5: Register primitives in catalog + SimpleRenderer**
+- [x] **Unit 5: Register primitives in catalog + SimpleRenderer**
 
   **Goal:** Add Every Layout primitives to the json-render catalog and SimpleRenderer. Replace shadcn Stack/Grid.
 
@@ -341,7 +341,7 @@ Set up Storybook, write stories for all components.
 
 ### Phase 4: Storybook
 
-- [ ] **Unit 6: Storybook setup**
+- [x] **Unit 6: Storybook setup**
 
   **Goal:** Initialize Storybook for the project with Vite + React 19.
 
@@ -369,7 +369,7 @@ Set up Storybook, write stories for all components.
   - `npm run storybook` starts without errors
   - Default welcome page renders
 
-- [ ] **Unit 7: Layout primitive stories**
+- [x] **Unit 7: Layout primitive stories**
 
   **Goal:** Write Storybook stories for all 10 Every Layout primitives.
 
@@ -407,7 +407,7 @@ Set up Storybook, write stories for all components.
   - Controls work (changing props updates the preview)
   - Viewport resizing demonstrates intrinsic layout behavior
 
-- [ ] **Unit 8: Data component stories**
+- [x] **Unit 8: Data component stories**
 
   **Goal:** Write Storybook stories for existing data components.
 
