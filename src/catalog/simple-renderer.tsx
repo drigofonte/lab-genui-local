@@ -182,5 +182,29 @@ function RenderElement({ spec, elementKey }: { spec: AppSpec; elementKey: string
 
 export function SimpleRenderer({ spec }: { spec: AppSpec }) {
   if (!spec.root) return null;
-  return <RenderElement spec={spec} elementKey={spec.root} />;
+  const elements = spec.elements as Record<string, any> | undefined;
+  if (!elements) return null;
+
+  // If root key exists in elements, use it directly
+  if (elements[spec.root]) {
+    return <RenderElement spec={spec} elementKey={spec.root} />;
+  }
+
+  // Fallback: LLM sometimes generates a root key that doesn't match any
+  // element key. Find the element that isn't referenced as a child of any
+  // other element — that's the true root.
+  const allChildKeys = new Set<string>();
+  for (const el of Object.values(elements)) {
+    for (const childKey of el.children ?? []) {
+      allChildKeys.add(childKey);
+    }
+  }
+  const orphanKeys = Object.keys(elements).filter((k) => !allChildKeys.has(k));
+  const resolvedRoot = orphanKeys.length === 1 ? orphanKeys[0] : Object.keys(elements)[0];
+
+  if (resolvedRoot) {
+    return <RenderElement spec={spec} elementKey={resolvedRoot} />;
+  }
+
+  return null;
 }
