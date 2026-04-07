@@ -10,6 +10,7 @@ const defaultProps = {
   systemPrompt: null,
   streamLines: null,
   thinkingContent: null,
+  isGenerating: false,
 };
 
 describe("DebugPanel — controlled tab state", () => {

@@ -82,6 +82,7 @@ function App() {
               systemPrompt={systemPrompt}
               streamLines={progress?.rawLines ?? null}
               thinkingContent={progress?.thinkingContent ?? null}
+              isGenerating={isLoading}
             />
           </details>
         </div>

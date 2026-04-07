@@ -14,13 +14,14 @@ interface DebugPanelProps {
   /** Live JSONL lines during streaming */
   streamLines: string[] | null;
   thinkingContent: string | null;
+  /** Whether generation is actively running */
+  isGenerating: boolean;
 }
 
-export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent }: DebugPanelProps) {
+export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent, isGenerating }: DebugPanelProps) {
   const [activeTab, setActiveTab] = useState("patches");
-  const isStreaming = streamLines !== null && streamLines.length > 0;
   const hasPatches = streamLines !== null && streamLines.length > 0;
-  const isThinking = isStreaming && thinkingContent != null && thinkingContent.length > 0;
+  const isThinking = isGenerating && thinkingContent != null && thinkingContent.length > 0;
 
   const patchesDisplay = streamLines ? streamLines.join("\n") : null;
 
@@ -35,7 +36,7 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2">
           <TabsTrigger value="patches" className="text-xs">
             JSONL Patches
-            {isStreaming && dot}
+            {isGenerating && dot}
           </TabsTrigger>
           <TabsTrigger value="json" className="text-xs">
             Raw JSON
@@ -74,7 +75,7 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
             </pre>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {isStreaming ? "JSON will appear after generation completes." : "No response yet. Generate a UI to see the raw output."}
+              {isGenerating ? "JSON will appear after generation completes." : "No response yet. Generate a UI to see the raw output."}
             </p>
           )}
         </TabsContent>
