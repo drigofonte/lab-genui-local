@@ -191,8 +191,8 @@ export function SimpleRenderer({ spec }: { spec: AppSpec }) {
   }
 
   // Fallback: LLM sometimes generates a root key that doesn't match any
-  // element key. Find the element that isn't referenced as a child of any
-  // other element — that's the true root.
+  // element key. Find elements not referenced as children — those are
+  // top-level elements the LLM forgot to wrap in a parent.
   const allChildKeys = new Set<string>();
   for (const el of Object.values(elements)) {
     for (const childKey of el.children ?? []) {
@@ -200,10 +200,21 @@ export function SimpleRenderer({ spec }: { spec: AppSpec }) {
     }
   }
   const orphanKeys = Object.keys(elements).filter((k) => !allChildKeys.has(k));
-  const resolvedRoot = orphanKeys.length === 1 ? orphanKeys[0] : Object.keys(elements)[0];
 
-  if (resolvedRoot) {
-    return <RenderElement spec={spec} elementKey={resolvedRoot} />;
+  if (orphanKeys.length === 1) {
+    return <RenderElement spec={spec} elementKey={orphanKeys[0]} />;
+  }
+
+  // Multiple orphans: render them all in a Stack (the LLM likely intended
+  // a parent wrapper but forgot to create it)
+  if (orphanKeys.length > 1) {
+    return (
+      <div className="stack" style={{ "--space": "var(--space-m)" } as React.CSSProperties}>
+        {orphanKeys.map((key) => (
+          <RenderElement key={key} spec={spec} elementKey={key} />
+        ))}
+      </div>
+    );
   }
 
   return null;
