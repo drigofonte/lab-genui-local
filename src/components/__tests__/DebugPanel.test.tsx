@@ -57,37 +57,22 @@ describe("DebugPanel — controlled tab state", () => {
   });
 });
 
-describe("DebugPanel — persistent Thinking tab", () => {
-  it("shows Thinking tab when thinkingContent is provided", () => {
-    render(<DebugPanel {...defaultProps} thinkingContent="Model reasoning..." />);
-    expect(screen.getByText("Thinking")).toBeTruthy();
-  });
-
-  it("keeps Thinking tab visible after thinkingContent resets to null", () => {
-    const { rerender } = render(
-      <DebugPanel {...defaultProps} thinkingContent="Model reasoning..." />
-    );
-    expect(screen.getByText("Thinking")).toBeTruthy();
-    // Simulate generation complete — thinkingContent becomes null
-    rerender(<DebugPanel {...defaultProps} thinkingContent={null} />);
-    // Tab should still be visible
-    expect(screen.getByText("Thinking")).toBeTruthy();
-  });
-
-  it("hides Thinking tab when no thinking content has ever existed", () => {
+describe("DebugPanel — Thinking tab", () => {
+  it("always shows the Thinking tab", () => {
     render(<DebugPanel {...defaultProps} />);
-    expect(screen.queryByText("Thinking")).toBeNull();
+    expect(screen.getByText("Thinking")).toBeTruthy();
   });
 
-  it("shows fallback message when tab is visible but content is null", () => {
-    const { rerender } = render(
-      <DebugPanel {...defaultProps} thinkingContent="Reasoning..." />
-    );
-    // Switch to thinking tab
+  it("shows thinking content when provided", () => {
+    render(<DebugPanel {...defaultProps} thinkingContent="Model reasoning..." />);
     fireEvent.click(screen.getByText("Thinking"));
-    // Reset content
-    rerender(<DebugPanel {...defaultProps} thinkingContent={null} />);
-    expect(screen.getByText("No thinking output for this generation.")).toBeTruthy();
+    expect(screen.getByText("Model reasoning...")).toBeTruthy();
+  });
+
+  it("shows fallback message when no thinking content", () => {
+    render(<DebugPanel {...defaultProps} />);
+    fireEvent.click(screen.getByText("Thinking"));
+    expect(screen.getByText("No thinking output available.")).toBeTruthy();
   });
 });
 

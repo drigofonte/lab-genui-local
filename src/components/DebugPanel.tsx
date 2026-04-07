@@ -18,20 +18,16 @@ interface DebugPanelProps {
 
 export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent }: DebugPanelProps) {
   const [activeTab, setActiveTab] = useState("patches");
-  const [hasEverHadThinking, setHasEverHadThinking] = useState(false);
   const isStreaming = streamLines !== null && streamLines.length > 0;
   const hasPatches = streamLines !== null && streamLines.length > 0;
-
-  useEffect(() => {
-    if (thinkingContent && thinkingContent.length > 0) {
-      setHasEverHadThinking(true);
-    }
-  }, [thinkingContent]);
+  const isThinking = isStreaming && thinkingContent != null && thinkingContent.length > 0;
 
   const patchesDisplay = streamLines ? streamLines.join("\n") : null;
 
   const patchesScrollRef = useAutoScroll<HTMLPreElement>(patchesDisplay);
   const thinkingScrollRef = useAutoScroll<HTMLPreElement>(thinkingContent);
+
+  const dot = <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />;
 
   return (
     <div className="rounded-lg border bg-card">
@@ -39,18 +35,15 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2">
           <TabsTrigger value="patches" className="text-xs">
             JSONL Patches
-            {isStreaming && (
-              <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
-            )}
+            {isStreaming && dot}
           </TabsTrigger>
           <TabsTrigger value="json" className="text-xs">
             Raw JSON
           </TabsTrigger>
-          {hasEverHadThinking && (
-            <TabsTrigger value="thinking" className="text-xs">
-              Thinking
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="thinking" className="text-xs">
+            Thinking
+            {isThinking && dot}
+          </TabsTrigger>
           <TabsTrigger value="errors" className="text-xs">
             Errors
             {error && (
@@ -86,19 +79,17 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
           )}
         </TabsContent>
 
-        {hasEverHadThinking && (
-          <TabsContent value="thinking" className="p-3">
-            {thinkingContent ? (
-              <pre ref={thinkingScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono text-muted-foreground">
-                {thinkingContent}
-              </pre>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No thinking output for this generation.
-              </p>
-            )}
-          </TabsContent>
-        )}
+        <TabsContent value="thinking" className="p-3">
+          {thinkingContent ? (
+            <pre ref={thinkingScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono text-muted-foreground">
+              {thinkingContent}
+            </pre>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No thinking output available.
+            </p>
+          )}
+        </TabsContent>
 
         <TabsContent value="errors" className="p-3">
           {error ? (
