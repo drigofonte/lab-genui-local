@@ -1,7 +1,7 @@
 ---
 title: "feat: Debug panel UX polish — auto-scroll, sticky tabs, persistent thinking"
 type: feat
-status: active
+status: completed
 date: 2026-04-07
 origin: docs/brainstorms/2026-04-07-debug-panel-ux-polish-requirements.md
 ---
