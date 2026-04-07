@@ -47,7 +47,6 @@ function App() {
     }
 
     setIsLoading(false);
-    setProgress(null);
   }
 
   return (

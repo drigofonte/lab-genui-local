@@ -13,10 +13,10 @@ const defaultProps = {
 };
 
 describe("DebugPanel — controlled tab state", () => {
-  it("starts on the json tab by default", () => {
+  it("starts on the patches tab by default", () => {
     render(<DebugPanel {...defaultProps} />);
     expect(
-      screen.getByText("No response yet. Generate a UI to see the raw output.")
+      screen.getByText("No patches yet. Generate a UI to see streaming JSONL output.")
     ).toBeTruthy();
   });
 
@@ -28,6 +28,32 @@ describe("DebugPanel — controlled tab state", () => {
     rerender(<DebugPanel {...defaultProps} rawJson='{"root":"a"}' />);
     // Errors tab content should still be visible
     expect(screen.getByText("No errors.")).toBeTruthy();
+  });
+
+  it("shows patches and raw JSON as separate tabs", () => {
+    render(
+      <DebugPanel
+        {...defaultProps}
+        streamLines={["patch1"]}
+        rawJson='{"root":"a"}'
+      />
+    );
+    expect(screen.getByText("JSONL Patches")).toBeTruthy();
+    expect(screen.getByText("Raw JSON")).toBeTruthy();
+  });
+
+  it("preserves patches after streaming ends", () => {
+    render(
+      <DebugPanel
+        {...defaultProps}
+        streamLines={["patch1", "patch2"]}
+        rawJson='{"root":"a"}'
+      />
+    );
+    // Patches tab is default and shows streaming content
+    const pre = document.querySelector("pre");
+    expect(pre?.textContent).toContain("patch1");
+    expect(pre?.textContent).toContain("patch2");
   });
 });
 

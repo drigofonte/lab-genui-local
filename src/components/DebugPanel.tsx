@@ -17,9 +17,10 @@ interface DebugPanelProps {
 }
 
 export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent }: DebugPanelProps) {
-  const [activeTab, setActiveTab] = useState("json");
+  const [activeTab, setActiveTab] = useState("patches");
   const [hasEverHadThinking, setHasEverHadThinking] = useState(false);
   const isStreaming = streamLines !== null && streamLines.length > 0;
+  const hasPatches = streamLines !== null && streamLines.length > 0;
 
   useEffect(() => {
     if (thinkingContent && thinkingContent.length > 0) {
@@ -27,23 +28,23 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
     }
   }, [thinkingContent]);
 
-  // During streaming show JSONL lines; after completion show formatted JSON
-  const jsonDisplay = isStreaming
-    ? streamLines.join("\n")
-    : rawJson;
+  const patchesDisplay = streamLines ? streamLines.join("\n") : null;
 
-  const jsonScrollRef = useAutoScroll<HTMLPreElement>(jsonDisplay);
+  const patchesScrollRef = useAutoScroll<HTMLPreElement>(patchesDisplay);
   const thinkingScrollRef = useAutoScroll<HTMLPreElement>(thinkingContent);
 
   return (
     <div className="rounded-lg border bg-card">
       <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as string)} className="w-full">
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2">
-          <TabsTrigger value="json" className="text-xs">
-            {isStreaming ? "JSONL Patches" : "Raw JSON"}
+          <TabsTrigger value="patches" className="text-xs">
+            JSONL Patches
             {isStreaming && (
               <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
             )}
+          </TabsTrigger>
+          <TabsTrigger value="json" className="text-xs">
+            Raw JSON
           </TabsTrigger>
           {hasEverHadThinking && (
             <TabsTrigger value="thinking" className="text-xs">
@@ -61,14 +62,26 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="json" className="p-3">
-          {jsonDisplay ? (
-            <pre ref={jsonScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
-              {jsonDisplay}
+        <TabsContent value="patches" className="p-3">
+          {hasPatches ? (
+            <pre ref={patchesScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
+              {patchesDisplay}
             </pre>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No response yet. Generate a UI to see the raw output.
+              No patches yet. Generate a UI to see streaming JSONL output.
+            </p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="json" className="p-3">
+          {rawJson ? (
+            <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
+              {rawJson}
+            </pre>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {isStreaming ? "JSON will appear after generation completes." : "No response yet. Generate a UI to see the raw output."}
             </p>
           )}
         </TabsContent>
