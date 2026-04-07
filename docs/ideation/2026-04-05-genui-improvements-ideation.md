@@ -12,7 +12,15 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 
 ## Ranked Ideas
 
-### 1. Catalog-Driven Few-Shot Examples
+### 1. Multi-Step Generation Pipeline — Separate Layout from Content
+**Description:** Split the single LLM call (prompt → full spec) into a multi-step pipeline: (1) **Design step** — choose the layout structure and component hierarchy (which primitives, how nested, what the element tree looks like), (2) **Content step** — populate the chosen layout with actual data, props, and text. Each step gets a focused prompt with a smaller decision surface. Could be implemented as an agentic loop (multiple LLM calls with intermediate validation) or as a structured chain-of-thought within a single call (e.g., "First output the layout skeleton as JSON, then fill in the props").
+**Rationale:** The #1 quality issue after expanding the catalog from 10 to 18 components. The LLM now frequently produces structurally broken specs: root keys that don't match element keys, orphaned elements not linked as children, missing elements referenced in children arrays. These are *structural* errors (wrong tree shape) not *content* errors (wrong prop values). Decomposing into steps lets each step focus on what it's good at: layout composition is a constrained tree-building task; content generation is a slot-filling task. This is the same insight behind chain-of-thought prompting — forcing intermediate structure improves final output quality. Compounds with idea #2 (few-shot examples): layout examples are simpler to demonstrate than full spec examples.
+**Downsides:** Adds latency (multiple LLM calls) or prompt complexity (structured chain-of-thought). Intermediate validation logic needed. The streaming/progressive rendering UX may need adaptation for multi-step output.
+**Confidence:** 85%
+**Complexity:** Medium (chain-of-thought in single call) / High (agentic multi-call)
+**Status:** Unexplored
+
+### 2. Catalog-Driven Few-Shot Examples
 **Description:** Inject 2-3 complete worked spec examples into the system prompt, auto-assembled from the catalog's existing `example` fields. Zero new content needed — the examples already exist in `catalog.ts`.
 **Rationale:** Highest-ROI prompt engineering intervention. For 7-8B models, 0-shot → 2-shot structured output compliance can jump from ~40% to ~85%. Every other idea depends on reliable generation.
 **Downsides:** Adds ~500-800 tokens to system prompt, reducing headroom for user data context.
@@ -20,7 +28,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Low
 **Status:** Unexplored
 
-### 2. UX Polish: Layout Stability and Visual Hierarchy
+### 3. UX Polish: Layout Stability and Visual Hierarchy
 **Description:** Fix layout shift from status messages (reserve space or use overlay). Stack rendered output above diagnostics instead of side-by-side. Center content. Make diagnostics collapsible/hidden by default with a toggle.
 **Rationale:** Current 2-column layout squashes both panels. Stacking vertically with diagnostics collapsed makes the rendered output the hero. Layout shifts from "Connecting..."/"Thinking..." break visual flow.
 **Downsides:** None meaningful.
@@ -28,7 +36,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Low
 **Status:** Unexplored
 
-### 3. UX Polish: Sticky Tabs and Auto-scroll
+### 4. UX Polish: Sticky Tabs and Auto-scroll
 **Description:** Debug panel tabs auto-scroll to bottom as content streams. Thinking tab persists after generation (not disappearing). Tabs remember selection.
 **Rationale:** During streaming, the interesting content is at the bottom. The disappearing Thinking tab is disorienting.
 **Downsides:** Auto-scroll needs "user is manually scrolling" detection.
@@ -36,7 +44,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Low
 **Status:** Unexplored
 
-### 4. Spec Editor — Editable Debug JSON with Live Re-render
+### 5. Spec Editor — Editable Debug JSON with Live Re-render
 **Description:** Make the debug panel's Raw JSON tab editable. On valid parse + catalog validation, update the rendered spec live. No LLM call needed.
 **Rationale:** ~40 lines of code. Immediately useful for understanding component behavior, debugging LLM output, and manual spec authoring.
 **Downsides:** Raw JSON editing is developer-only UX.
@@ -44,7 +52,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Low
 **Status:** Unexplored
 
-### 5. Config Panel — Model Selector + num_predict
+### 6. Config Panel — Model Selector + num_predict
 **Description:** Settings drawer with Ollama model dropdown (auto-discovered via `/api/tags`) and num_predict slider. Persisted to localStorage.
 **Rationale:** Switching models is the most common lab action. Currently requires editing TypeScript source.
 **Downsides:** Minor scope — skip the Ollama URL field.
@@ -52,7 +60,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Low
 **Status:** Unexplored
 
-### 6. Prompt History with UI Snapshots
+### 7. Prompt History with UI Snapshots
 **Description:** Persist every successful spec to IndexedDB with prompt and timestamp. Collapsible sidebar of past generations — click to restore instantly.
 **Rationale:** Zero persistence is the single biggest trust gap. Can't compare outputs, build on previous work, or survive a page refresh.
 **Downsides:** IndexedDB API is verbose. Storage management needs thought.
@@ -60,7 +68,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Medium
 **Status:** Unexplored
 
-### 7. Export to React Code
+### 8. Export to React Code
 **Description:** Convert spec JSON to a self-contained React + Tailwind `.tsx` file. One-click copy or download. Deterministic — no LLM involved.
 **Rationale:** Answers "now what?" after generation. Transforms the tool from a visualization demo into a scaffolding tool.
 **Downsides:** Generated code quality depends on component mapping fidelity.
@@ -68,7 +76,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Medium
 **Status:** Unexplored
 
-### 8. Google Sheets Integration — Bring Your Own Data via URL
+### 9. Google Sheets Integration — Bring Your Own Data via URL
 **Description:** User pastes a Google Sheets published CSV link. App fetches and parses it, injects schema + sample rows into prompt context.
 **Rationale:** Google Sheets is the default "database" for solopreneurs and team leads. Published sheets expose a CSV endpoint with zero auth.
 **Downsides:** Requires sheet to be published. Private sheets need OAuth (out of scope). CORS may need a proxy.
@@ -76,7 +84,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Medium
 **Status:** Unexplored
 
-### 9. DuckDB Data Import + Tool Calling (two phases)
+### 10. DuckDB Data Import + Tool Calling (two phases)
 **Description:** Phase 1: Drag-and-drop CSV/JSON → DuckDB-WASM profiles it → schema summary replaces hardcoded data. Phase 2: LLM issues SQL queries via Ollama tool calling → DuckDB executes in-browser → results populate spec.
 **Rationale:** The architecturally distinctive bet. No hosted tool replicates local data + local LLM + local query engine + generated UI.
 **Downsides:** Phase 2 is complex (tool-calling format + dispatch loop). Build sequentially.
@@ -84,7 +92,7 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** Medium (Phase 1) / High (Phase 2)
 **Status:** Unexplored
 
-### 10. Conversational Refinement with Spec Diffing
+### 11. Conversational Refinement with Spec Diffing
 **Description:** Pass message history across generations for follow-ups like "add a trend line." Diff old vs new spec to show what changed. Surface model reasoning inline.
 **Rationale:** Uses the model's stronger instruction-following (short deltas) rather than weaker compositional planning (full dashboards from scratch).
 **Downsides:** Context window pressure. Small models may lose coherence after 3-4 turns.
@@ -92,13 +100,14 @@ React 19 + TypeScript + Vite SPA that generates UI from natural language prompts
 **Complexity:** High
 **Status:** Unexplored
 
-### 11. Every Layout Primitives — Intrinsic, Composable Layout System
+### 12. Every Layout Primitives — Intrinsic, Composable Layout System
 **Description:** Replace the current Stack/Grid layout components with Heydon Pickering's Every Layout primitives: Stack, Box, Center, Cluster, Sidebar, Switcher, Cover, Grid, Frame, Reel. These are intrinsically responsive — they adapt to available space algorithmically using CSS custom properties, without breakpoints or explicit column counts. The LLM composes layouts by nesting primitives (e.g., a Cover containing a Stack of Clusters) instead of specifying pixel values or column numbers.
-**Rationale:** This is a perfect fit for LLM-generated UI. Current layout components force the model to make decisions it's bad at (how many columns? what gap size? what breakpoint?). Every Layout primitives are self-sizing — the LLM just says "put these in a Sidebar" and the CSS handles the responsive behavior. Fewer layout decisions = fewer failure modes = higher generation reliability. The primitives are also a strict superset of what we have (Stack and Grid already exist in the catalog) — we'd be adding Center, Cluster, Sidebar, Switcher, Cover, Frame, and Reel as new layout options. This compounds with the few-shot examples idea (#1): a richer layout vocabulary means richer example specs.
+**Rationale:** This is a perfect fit for LLM-generated UI. Current layout components force the model to make decisions it's bad at (how many columns? what gap size? what breakpoint?). Every Layout primitives are self-sizing — the LLM just says "put these in a Sidebar" and the CSS handles the responsive behavior. Fewer layout decisions = fewer failure modes = higher generation reliability. The primitives are also a strict superset of what we have (Stack and Grid already exist in the catalog) — we'd be adding Center, Cluster, Sidebar, Switcher, Cover, Frame, and Reel as new layout options. This compounds with the few-shot examples idea (#2): a richer layout vocabulary means richer example specs.
 **Downsides:** Requires implementing ~8 new layout components (CSS-only, no complex logic). The LLM needs to learn when to use Sidebar vs Switcher vs Cluster — the system prompt grows. Some primitives (Frame, Reel, Imposter) may not be useful for dashboard-style UIs.
 **Confidence:** 85%
 **Complexity:** Medium
-**Status:** Unexplored
+**Status:** Explored
+**Outcome:** Implemented in PR #3 (feat/every-layout-primitives). Full design system stack: tokens, Utopia fluid scales, 10 components, CUBE CSS, catalog integration, Storybook. Implementation revealed that expanding the catalog from 10 to 18 components degraded LLM output quality — the model now frequently produces structurally broken specs (mismatched root keys, orphaned elements, missing children links). This directly motivated idea #1 (multi-step generation pipeline).
 
 ## Rejection Summary
 
@@ -138,3 +147,4 @@ The following ideas were captured directly in the product vision doc (`docs/visi
 - 2026-04-05: Initial ideation — 32 raw candidates generated across 4 frames (user pain, missing capabilities, leverage/compounding, inversion/reframing), 22 after dedupe, 10 survivors after adversarial filtering. User added 3 UX polish ideas and Google Sheets integration.
 - 2026-04-05: Refinement — User suggested Every Layout primitives (Heydon Pickering). Researched and added as idea #11. Total survivors: 11.
 - 2026-04-05: Vision expansion — User described target use case (capacity management), framework preferences (React Router, TanStack, Radix), atomic design, memory system, data sync, and platform vision. Captured in `docs/vision/2026-04-05-product-vision.md` as product-level decisions.
+- 2026-04-07: Every Layout implemented (idea #12, was #11). Post-implementation observation: expanding catalog from 10→18 components degraded LLM spec quality (structural errors: root/element key mismatches, orphaned elements, missing children arrays). Added resilient root resolution to SimpleRenderer as a defensive fix. Added new idea #1: multi-step generation pipeline (separate layout structure from content population). Total survivors: 12.

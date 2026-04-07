@@ -1,0 +1,11 @@
+/*
+ * CUBE CSS — Exception Layer
+ *
+ * Data-attribute-driven variants that override block or composition styles.
+ * Use [data-state] or [data-variant] attributes to trigger exceptions.
+ *
+ * Example:
+ *   .box[data-variant="highlight"] { --color-light: var(--color-accent); }
+ *
+ * @link https://cube.fyi/exception.html
+ */

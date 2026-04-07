@@ -1,6 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AppSpec } from "./catalog";
 import { Metric } from "./components/Metric";
 import { BarGraph } from "./components/BarGraph";
+import {
+  Stack as LayoutStack,
+  Box as LayoutBox,
+  Center as LayoutCenter,
+  Cluster as LayoutCluster,
+  Sidebar as LayoutSidebar,
+  Switcher as LayoutSwitcher,
+  Cover as LayoutCover,
+  Grid as LayoutGrid,
+  Frame as LayoutFrame,
+  Reel as LayoutReel,
+} from "../components/layout";
 
 /**
  * Simple spec renderer that bypasses json-render's createRenderer/Renderer.
@@ -10,7 +23,50 @@ import { BarGraph } from "./components/BarGraph";
  * directly and renders components with the correct prop shape.
  */
 
-// Simple shadcn-style components for layout (no dependency on @json-render/shadcn)
+// --- Every Layout wrappers (bridge { props, children } to flat-prop components) ---
+// Null coalescing (?? undefined) ensures null values from the catalog schema
+// fall through to component parameter defaults instead of overriding them.
+function Stack({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutStack space={props.space ?? undefined} recursive={props.recursive ?? undefined} splitAfter={props.splitAfter ?? undefined}>{children}</LayoutStack>;
+}
+
+function Box({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutBox padding={props.padding ?? undefined} borderWidth={props.borderWidth ?? undefined}>{children}</LayoutBox>;
+}
+
+function Center({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCenter maxWidth={props.maxWidth ?? undefined} centerText={props.centerText ?? undefined} gutters={props.gutters ?? undefined} intrinsic={props.intrinsic ?? undefined}>{children}</LayoutCenter>;
+}
+
+function Cluster({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCluster space={props.space ?? undefined} justify={props.justify ?? undefined} align={props.align ?? undefined}>{children}</LayoutCluster>;
+}
+
+function Sidebar({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutSidebar side={props.side ?? undefined} sideWidth={props.sideWidth ?? undefined} contentMin={props.contentMin ?? undefined} space={props.space ?? undefined}>{children}</LayoutSidebar>;
+}
+
+function Switcher({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutSwitcher threshold={props.threshold ?? undefined} space={props.space ?? undefined} limit={props.limit ?? undefined}>{children}</LayoutSwitcher>;
+}
+
+function Cover({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutCover minHeight={props.minHeight ?? undefined} space={props.space ?? undefined} noPad={props.noPad ?? undefined}>{children}</LayoutCover>;
+}
+
+function Grid({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutGrid min={props.min ?? undefined} space={props.space ?? undefined}>{children}</LayoutGrid>;
+}
+
+function Frame({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutFrame ratio={props.ratio ?? undefined}>{children}</LayoutFrame>;
+}
+
+function Reel({ props, children }: { props: any; children?: React.ReactNode }) {
+  return <LayoutReel itemWidth={props.itemWidth ?? undefined} space={props.space ?? undefined} height={props.height ?? undefined} noBar={props.noBar ?? undefined}>{children}</LayoutReel>;
+}
+
+// --- Data/content components ---
 function Card({ props, children }: { props: any; children?: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -23,25 +79,6 @@ function Card({ props, children }: { props: any; children?: React.ReactNode }) {
       <div className="p-6">{children}</div>
     </div>
   );
-}
-
-function Stack({ props, children }: { props: any; children?: React.ReactNode }) {
-  const isHorizontal = props.direction === "horizontal";
-  const gapMap: Record<string, string> = { none: "gap-0", sm: "gap-2", md: "gap-4", lg: "gap-6", xl: "gap-8" };
-  const gap = gapMap[props.gap ?? "md"] ?? "gap-4";
-  return (
-    <div className={`flex ${isHorizontal ? "flex-row" : "flex-col"} ${gap}`}>
-      {children}
-    </div>
-  );
-}
-
-function Grid({ props, children }: { props: any; children?: React.ReactNode }) {
-  const cols = props.columns ?? 1;
-  const gapMap: Record<string, string> = { sm: "gap-2", md: "gap-4", lg: "gap-6", xl: "gap-8" };
-  const gap = gapMap[props.gap ?? "md"] ?? "gap-4";
-  const colsMap: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5", 6: "grid-cols-6" };
-  return <div className={`grid ${colsMap[cols] ?? "grid-cols-1"} ${gap}`}>{children}</div>;
 }
 
 function Heading({ props }: { props: any }) {
@@ -99,9 +136,19 @@ function Separator() {
 }
 
 const COMPONENTS: Record<string, React.ComponentType<{ props: any; children?: React.ReactNode }>> = {
-  Card,
+  // Layout primitives
   Stack,
+  Box,
+  Center,
+  Cluster,
+  Sidebar,
+  Switcher,
+  Cover,
   Grid,
+  Frame,
+  Reel,
+  // Data/content
+  Card,
   Heading,
   Text,
   Badge,
@@ -135,5 +182,40 @@ function RenderElement({ spec, elementKey }: { spec: AppSpec; elementKey: string
 
 export function SimpleRenderer({ spec }: { spec: AppSpec }) {
   if (!spec.root) return null;
-  return <RenderElement spec={spec} elementKey={spec.root} />;
+  const elements = spec.elements as Record<string, any> | undefined;
+  if (!elements) return null;
+
+  // If root key exists in elements, use it directly
+  if (elements[spec.root]) {
+    return <RenderElement spec={spec} elementKey={spec.root} />;
+  }
+
+  // Fallback: LLM sometimes generates a root key that doesn't match any
+  // element key. Find elements not referenced as children — those are
+  // top-level elements the LLM forgot to wrap in a parent.
+  const allChildKeys = new Set<string>();
+  for (const el of Object.values(elements)) {
+    for (const childKey of el.children ?? []) {
+      allChildKeys.add(childKey);
+    }
+  }
+  const orphanKeys = Object.keys(elements).filter((k) => !allChildKeys.has(k));
+
+  if (orphanKeys.length === 1) {
+    return <RenderElement spec={spec} elementKey={orphanKeys[0]} />;
+  }
+
+  // Multiple orphans: render them all in a Stack (the LLM likely intended
+  // a parent wrapper but forgot to create it)
+  if (orphanKeys.length > 1) {
+    return (
+      <div className="stack" style={{ "--space": "var(--space-m)" } as React.CSSProperties}>
+        {orphanKeys.map((key) => (
+          <RenderElement key={key} spec={spec} elementKey={key} />
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }
