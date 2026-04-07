@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { PromptInput } from "@/components/PromptInput";
 import { RenderArea } from "@/components/RenderArea";
 import { DebugPanel } from "@/components/DebugPanel";
@@ -12,6 +12,7 @@ function App() {
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<StreamProgress | null>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
 
   const handleProgress = useCallback((p: StreamProgress) => {
     setProgress(p);
@@ -27,6 +28,10 @@ function App() {
     setSpec(null);
     setRawJson(null);
     setProgress(null);
+    // Auto-open debug panel when generation starts
+    if (detailsRef.current) {
+      detailsRef.current.open = true;
+    }
 
     const result: GenerationResult = await generateUI(prompt, handleProgress);
     setSystemPrompt(result.systemPrompt);
@@ -42,7 +47,6 @@ function App() {
     }
 
     setIsLoading(false);
-    setProgress(null);
   }
 
   return (
@@ -59,7 +63,7 @@ function App() {
           <PromptInput onGenerate={handleGenerate} isLoading={isLoading} progress={progress} />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
           <div>
             <h2 className="mb-2 text-sm font-medium text-muted-foreground">
               Rendered Output
@@ -67,18 +71,20 @@ function App() {
             <RenderArea spec={spec} />
           </div>
 
-          <div>
-            <h2 className="mb-2 text-sm font-medium text-muted-foreground">
+          <details ref={detailsRef} className="group">
+            <summary className="mb-2 flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-muted-foreground">
+              <span className="transition-transform group-open:rotate-90">&#9654;</span>
               Debug
-            </h2>
+            </summary>
             <DebugPanel
               rawJson={rawJson}
               error={error}
               systemPrompt={systemPrompt}
               streamLines={progress?.rawLines ?? null}
               thinkingContent={progress?.thinkingContent ?? null}
+              isGenerating={isLoading}
             />
-          </div>
+          </details>
         </div>
       </div>
     </div>

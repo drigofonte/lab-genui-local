@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { useAutoScroll } from "@/hooks/useAutoScroll";
 
 interface DebugPanelProps {
   rawJson: string | null;
@@ -12,32 +14,37 @@ interface DebugPanelProps {
   /** Live JSONL lines during streaming */
   streamLines: string[] | null;
   thinkingContent: string | null;
+  /** Whether generation is actively running */
+  isGenerating: boolean;
 }
 
-export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent }: DebugPanelProps) {
-  const isStreaming = streamLines !== null && streamLines.length > 0;
-  const hasThinking = thinkingContent && thinkingContent.length > 0;
+export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinkingContent, isGenerating }: DebugPanelProps) {
+  const [activeTab, setActiveTab] = useState("patches");
+  const hasPatches = streamLines !== null && streamLines.length > 0;
+  const isThinking = isGenerating && thinkingContent != null && thinkingContent.length > 0;
 
-  // During streaming show JSONL lines; after completion show formatted JSON
-  const jsonDisplay = isStreaming
-    ? streamLines.join("\n")
-    : rawJson;
+  const patchesDisplay = streamLines ? streamLines.join("\n") : null;
+
+  const patchesScrollRef = useAutoScroll<HTMLPreElement>(patchesDisplay);
+  const thinkingScrollRef = useAutoScroll<HTMLPreElement>(thinkingContent);
+
+  const dot = <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />;
 
   return (
     <div className="rounded-lg border bg-card">
-      <Tabs defaultValue="json" className="w-full">
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as string)} className="w-full">
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-2">
-          <TabsTrigger value="json" className="text-xs">
-            {isStreaming ? "JSONL Patches" : "Raw JSON"}
-            {isStreaming && (
-              <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
-            )}
+          <TabsTrigger value="patches" className="text-xs">
+            JSONL Patches
+            {isGenerating && dot}
           </TabsTrigger>
-          {hasThinking && (
-            <TabsTrigger value="thinking" className="text-xs">
-              Thinking
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="json" className="text-xs">
+            Raw JSON
+          </TabsTrigger>
+          <TabsTrigger value="thinking" className="text-xs">
+            Thinking
+            {isThinking && dot}
+          </TabsTrigger>
           <TabsTrigger value="errors" className="text-xs">
             Errors
             {error && (
@@ -49,25 +56,41 @@ export function DebugPanel({ rawJson, error, systemPrompt, streamLines, thinking
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="json" className="p-3">
-          {jsonDisplay ? (
-            <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
-              {jsonDisplay}
+        <TabsContent value="patches" className="p-3">
+          {hasPatches ? (
+            <pre ref={patchesScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
+              {patchesDisplay}
             </pre>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No response yet. Generate a UI to see the raw output.
+              No patches yet. Generate a UI to see streaming JSONL output.
             </p>
           )}
         </TabsContent>
 
-        {hasThinking && (
-          <TabsContent value="thinking" className="p-3">
-            <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono text-muted-foreground">
+        <TabsContent value="json" className="p-3">
+          {rawJson ? (
+            <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono">
+              {rawJson}
+            </pre>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {isGenerating ? "JSON will appear after generation completes." : "No response yet. Generate a UI to see the raw output."}
+            </p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="thinking" className="p-3">
+          {thinkingContent ? (
+            <pre ref={thinkingScrollRef} className="max-h-[400px] overflow-auto whitespace-pre-wrap text-xs font-mono text-muted-foreground">
               {thinkingContent}
             </pre>
-          </TabsContent>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No thinking output available.
+            </p>
+          )}
+        </TabsContent>
 
         <TabsContent value="errors" className="p-3">
           {error ? (
