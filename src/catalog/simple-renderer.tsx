@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AppSpec } from "./catalog";
 import { Metric } from "./components/Metric";
 import { BarGraph } from "./components/BarGraph";
@@ -23,44 +24,46 @@ import {
  */
 
 // --- Every Layout wrappers (bridge { props, children } to flat-prop components) ---
+// Null coalescing (?? undefined) ensures null values from the catalog schema
+// fall through to component parameter defaults instead of overriding them.
 function Stack({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutStack space={props.space} recursive={props.recursive} splitAfter={props.splitAfter}>{children}</LayoutStack>;
+  return <LayoutStack space={props.space ?? undefined} recursive={props.recursive ?? undefined} splitAfter={props.splitAfter ?? undefined}>{children}</LayoutStack>;
 }
 
 function Box({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutBox padding={props.padding} borderWidth={props.borderWidth}>{children}</LayoutBox>;
+  return <LayoutBox padding={props.padding ?? undefined} borderWidth={props.borderWidth ?? undefined}>{children}</LayoutBox>;
 }
 
 function Center({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutCenter maxWidth={props.maxWidth} centerText={props.centerText} gutters={props.gutters} intrinsic={props.intrinsic}>{children}</LayoutCenter>;
+  return <LayoutCenter maxWidth={props.maxWidth ?? undefined} centerText={props.centerText ?? undefined} gutters={props.gutters ?? undefined} intrinsic={props.intrinsic ?? undefined}>{children}</LayoutCenter>;
 }
 
 function Cluster({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutCluster space={props.space} justify={props.justify} align={props.align}>{children}</LayoutCluster>;
+  return <LayoutCluster space={props.space ?? undefined} justify={props.justify ?? undefined} align={props.align ?? undefined}>{children}</LayoutCluster>;
 }
 
 function Sidebar({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutSidebar side={props.side} sideWidth={props.sideWidth} contentMin={props.contentMin} space={props.space}>{children}</LayoutSidebar>;
+  return <LayoutSidebar side={props.side ?? undefined} sideWidth={props.sideWidth ?? undefined} contentMin={props.contentMin ?? undefined} space={props.space ?? undefined}>{children}</LayoutSidebar>;
 }
 
 function Switcher({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutSwitcher threshold={props.threshold} space={props.space} limit={props.limit}>{children}</LayoutSwitcher>;
+  return <LayoutSwitcher threshold={props.threshold ?? undefined} space={props.space ?? undefined} limit={props.limit ?? undefined}>{children}</LayoutSwitcher>;
 }
 
 function Cover({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutCover minHeight={props.minHeight} space={props.space} noPad={props.noPad}>{children}</LayoutCover>;
+  return <LayoutCover minHeight={props.minHeight ?? undefined} space={props.space ?? undefined} noPad={props.noPad ?? undefined}>{children}</LayoutCover>;
 }
 
 function Grid({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutGrid min={props.min} space={props.space}>{children}</LayoutGrid>;
+  return <LayoutGrid min={props.min ?? undefined} space={props.space ?? undefined}>{children}</LayoutGrid>;
 }
 
 function Frame({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutFrame ratio={props.ratio}>{children}</LayoutFrame>;
+  return <LayoutFrame ratio={props.ratio ?? undefined}>{children}</LayoutFrame>;
 }
 
 function Reel({ props, children }: { props: any; children?: React.ReactNode }) {
-  return <LayoutReel itemWidth={props.itemWidth} space={props.space} height={props.height} noBar={props.noBar}>{children}</LayoutReel>;
+  return <LayoutReel itemWidth={props.itemWidth ?? undefined} space={props.space ?? undefined} height={props.height ?? undefined} noBar={props.noBar ?? undefined}>{children}</LayoutReel>;
 }
 
 // --- Data/content components ---

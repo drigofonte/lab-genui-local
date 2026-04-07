@@ -1,7 +1,6 @@
 import { Children, type ReactNode, type CSSProperties, type HTMLAttributes } from "react";
 
 export type CoverProps = {
-  centered?: string;
   space?: string;
   minHeight?: string;
   noPad?: boolean;
@@ -10,7 +9,6 @@ export type CoverProps = {
 } & Omit<HTMLAttributes<HTMLDivElement>, "className">;
 
 export function Cover({
-  centered = ":first-child",
   space = "var(--space-m)",
   minHeight = "100vh",
   noPad = false,
@@ -29,14 +27,13 @@ export function Cover({
 
   return (
     <div className={classes} style={cssVars} {...rest}>
-      {Children.map(children, (child, index) => {
-        const isCentered =
-          centered === ":first-child" ? index === 0 : false;
-        if (isCentered) {
-          return <div className="cover-centered">{child}</div>;
-        }
-        return child;
-      })}
+      {Children.map(children, (child, index) =>
+        index === 0 ? (
+          <div className="cover-centered">{child}</div>
+        ) : (
+          child
+        )
+      )}
     </div>
   );
 }

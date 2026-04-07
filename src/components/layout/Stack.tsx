@@ -1,4 +1,4 @@
-import type { ReactNode, CSSProperties, HTMLAttributes } from "react";
+import { Children, type ReactNode, type CSSProperties, type HTMLAttributes } from "react";
 
 export type StackProps = {
   space?: string;
@@ -34,7 +34,7 @@ export function Stack({
     );
   }
 
-  const childArray = Array.isArray(children) ? children : [children];
+  const childArray = Children.toArray(children);
   return (
     <div className={classes} style={cssVars} {...rest}>
       {childArray.map((child, i) =>

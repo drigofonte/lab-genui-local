@@ -30,9 +30,10 @@ export function Switcher({
     ...style,
   } as CSSProperties;
 
+  const actualLimit = limit ?? 4;
   const nthChildCSS = `
-    .${switcherId} > :nth-last-child(n+${limit + 1}),
-    .${switcherId} > :nth-last-child(n+${limit + 1}) ~ * {
+    .${switcherId} > :nth-last-child(n+${actualLimit + 1}),
+    .${switcherId} > :nth-last-child(n+${actualLimit + 1}) ~ * {
       flex-basis: 100%;
     }
   `;
