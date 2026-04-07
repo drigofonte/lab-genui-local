@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 
@@ -63,6 +62,26 @@ describe("Box", () => {
     expect(el.className).toContain("box");
     expect(el.style.getPropertyValue("--padding")).toBe("var(--space-l)");
   });
+
+  it("sets --border-width when borderWidth is provided", () => {
+    render(
+      <Box borderWidth="2px" data-testid="box">
+        Content
+      </Box>
+    );
+    const el = screen.getByTestId("box");
+    expect(el.style.getPropertyValue("--border-width")).toBe("2px");
+  });
+
+  it("does not set --border-width when omitted", () => {
+    render(
+      <Box data-testid="box">
+        Content
+      </Box>
+    );
+    const el = screen.getByTestId("box");
+    expect(el.style.getPropertyValue("--border-width")).toBe("");
+  });
 });
 
 describe("Center", () => {
@@ -87,6 +106,17 @@ describe("Center", () => {
     expect(el.className).toContain("center-text");
     expect(el.className).toContain("center-intrinsic");
   });
+
+  it("applies gutters class and --gutters variable", () => {
+    render(
+      <Center gutters="var(--space-m)" data-testid="center">
+        Content
+      </Center>
+    );
+    const el = screen.getByTestId("center");
+    expect(el.className).toContain("center-gutters");
+    expect(el.style.getPropertyValue("--gutters")).toBe("var(--space-m)");
+  });
 });
 
 describe("Cluster", () => {
@@ -100,6 +130,18 @@ describe("Cluster", () => {
     const el = screen.getByTestId("cluster");
     expect(el.className).toContain("cluster");
     expect(el.style.getPropertyValue("--space")).toBe("var(--space-xs)");
+  });
+
+  it("sets --justify and --align custom properties", () => {
+    render(
+      <Cluster justify="space-between" align="flex-end" data-testid="cluster">
+        <span>A</span>
+        <span>B</span>
+      </Cluster>
+    );
+    const el = screen.getByTestId("cluster");
+    expect(el.style.getPropertyValue("--justify")).toBe("space-between");
+    expect(el.style.getPropertyValue("--align")).toBe("flex-end");
   });
 });
 
@@ -130,7 +172,7 @@ describe("Sidebar", () => {
 });
 
 describe("Switcher", () => {
-  it("renders with .switcher class and dynamic nth-child CSS", () => {
+  it("renders with .switcher class and injects nth-child CSS into head", () => {
     render(
       <Switcher limit={3} data-testid="switcher">
         <div>A</div>
@@ -140,10 +182,21 @@ describe("Switcher", () => {
     );
     const el = screen.getByTestId("switcher");
     expect(el.className).toContain("switcher");
-    // Check that a <style> tag was rendered with nth-child rule
-    const styleEl = document.querySelector("style");
+    // Style is injected into document.head via useEffect
+    const styleEl = document.head.querySelector("style");
     expect(styleEl?.textContent).toContain("nth-last-child");
     expect(styleEl?.textContent).toContain("4"); // limit + 1
+  });
+
+  it("cleans up style tag on unmount", () => {
+    const { unmount } = render(
+      <Switcher limit={3} data-testid="switcher">
+        <div>A</div>
+      </Switcher>
+    );
+    expect(document.head.querySelectorAll("style").length).toBeGreaterThan(0);
+    unmount();
+    expect(document.head.querySelectorAll("style").length).toBe(0);
   });
 });
 
@@ -171,6 +224,26 @@ describe("Cover", () => {
     const centeredDiv = el.querySelector(".cover-centered");
     expect(centeredDiv).not.toBeNull();
     expect(centeredDiv?.textContent).toBe("Centered");
+  });
+
+  it("sets --padding to 0 when noPad is true", () => {
+    render(
+      <Cover noPad data-testid="cover">
+        <div>Content</div>
+      </Cover>
+    );
+    const el = screen.getByTestId("cover");
+    expect(el.style.getPropertyValue("--padding")).toBe("0");
+  });
+
+  it("sets --padding to space value when noPad is false", () => {
+    render(
+      <Cover space="var(--space-l)" data-testid="cover">
+        <div>Content</div>
+      </Cover>
+    );
+    const el = screen.getByTestId("cover");
+    expect(el.style.getPropertyValue("--padding")).toBe("var(--space-l)");
   });
 });
 
@@ -222,6 +295,16 @@ describe("Reel", () => {
     );
     const el = screen.getByTestId("reel");
     expect(el.className).toContain("reel-no-bar");
+  });
+
+  it("sets --reel-height when height is provided", () => {
+    render(
+      <Reel height="400px" data-testid="reel">
+        <div>A</div>
+      </Reel>
+    );
+    const el = screen.getByTestId("reel");
+    expect(el.style.getPropertyValue("--reel-height")).toBe("400px");
   });
 });
 

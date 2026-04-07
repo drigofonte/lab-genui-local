@@ -113,4 +113,69 @@ describe("catalog", () => {
     const result = catalog.validate(spec);
     expect(result.success).toBe(true);
   });
+
+  it("validate() accepts specs for all remaining layout components", () => {
+    const specs = [
+      { type: "Box", props: { padding: "var(--space-m)", borderWidth: null } },
+      { type: "Cluster", props: { space: "var(--space-s)", justify: null, align: null } },
+      { type: "Switcher", props: { threshold: "30rem", space: null, limit: 3 } },
+      { type: "Cover", props: { minHeight: "50vh", space: null, noPad: null } },
+      { type: "Grid", props: { min: "250px", space: null } },
+      { type: "Frame", props: { ratio: "16 / 9" } },
+      { type: "Reel", props: { itemWidth: "20ch", space: null, height: null, noBar: null } },
+    ];
+
+    for (const { type, props } of specs) {
+      const spec = {
+        root: "el-1",
+        elements: {
+          "el-1": { type, props, children: [] },
+        },
+      };
+      const result = catalog.validate(spec);
+      if (!result.success) {
+        console.error(`${type} validation errors:`, JSON.stringify(result.error?.issues, null, 2));
+      }
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("validate() accepts specs for data components", () => {
+    const specs = [
+      { type: "Card", props: { title: "Test", description: null } },
+      { type: "Text", props: { text: "Hello" } },
+      { type: "Badge", props: { text: "Active" } },
+      { type: "Separator", props: {} },
+    ];
+
+    for (const { type, props } of specs) {
+      const spec = {
+        root: "el-1",
+        elements: {
+          "el-1": { type, props, children: [] },
+        },
+      };
+      const result = catalog.validate(spec);
+      if (!result.success) {
+        console.error(`${type} validation errors:`, JSON.stringify(result.error?.issues, null, 2));
+      }
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("validate() rejects a spec with unknown component type", () => {
+    const spec = {
+      root: "el-1",
+      elements: {
+        "el-1": {
+          type: "NonExistent",
+          props: {},
+          children: [],
+        },
+      },
+    };
+
+    const result = catalog.validate(spec);
+    expect(result.success).toBe(false);
+  });
 });

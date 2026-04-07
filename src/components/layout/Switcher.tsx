@@ -1,4 +1,4 @@
-import { useId, type ReactNode, type CSSProperties, type HTMLAttributes } from "react";
+import { useId, useEffect, useRef, type ReactNode, type CSSProperties, type HTMLAttributes } from "react";
 
 export type SwitcherProps = {
   threshold?: string;
@@ -19,6 +19,24 @@ export function Switcher({
 }: SwitcherProps) {
   const id = useId();
   const switcherId = `switcher-${id.replace(/:/g, "")}`;
+  const styleRef = useRef<HTMLStyleElement | null>(null);
+
+  const actualLimit = limit ?? 4;
+
+  useEffect(() => {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `
+      .${switcherId} > :nth-last-child(n+${actualLimit + 1}),
+      .${switcherId} > :nth-last-child(n+${actualLimit + 1}) ~ * {
+        flex-basis: 100%;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    styleRef.current = styleEl;
+    return () => {
+      styleEl.remove();
+    };
+  }, [switcherId, actualLimit]);
 
   const classes = ["switcher", switcherId, className]
     .filter(Boolean)
@@ -30,20 +48,9 @@ export function Switcher({
     ...style,
   } as CSSProperties;
 
-  const actualLimit = limit ?? 4;
-  const nthChildCSS = `
-    .${switcherId} > :nth-last-child(n+${actualLimit + 1}),
-    .${switcherId} > :nth-last-child(n+${actualLimit + 1}) ~ * {
-      flex-basis: 100%;
-    }
-  `;
-
   return (
-    <>
-      <style>{nthChildCSS}</style>
-      <div className={classes} style={cssVars} {...rest}>
-        {children}
-      </div>
-    </>
+    <div className={classes} style={cssVars} {...rest}>
+      {children}
+    </div>
   );
 }

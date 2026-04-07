@@ -66,7 +66,7 @@ export const catalog = defineCatalog(schema, {
         space: z.string().nullable(),
       }),
       description:
-        "Two-panel layout — sidebar has fixed ideal width, content fills remaining space. Wraps to stacked on narrow screens. Expects exactly two children.",
+        "Two-panel layout — sidebar has fixed ideal width, content fills remaining space. Wraps to stacked on narrow screens. IMPORTANT: must have exactly 2 children (sidebar content and main content). More or fewer children will break the layout.",
       example: { side: "left", sideWidth: "20rem", contentMin: "50%", space: "var(--space-l)" },
     },
 
@@ -123,13 +123,42 @@ export const catalog = defineCatalog(schema, {
       example: { itemWidth: "20ch", space: "var(--space-s)", height: null, noBar: null },
     },
 
-    // --- Data/content components (shadcn) ---
-    Card: shadcnComponentDefinitions.Card,
+    // --- Data/content components ---
+    Card: {
+      props: z.object({
+        title: z.string().nullable(),
+        description: z.string().nullable(),
+      }),
+      description:
+        "A bordered card container with optional title and description header. Use to visually group related content.",
+      example: { title: "Summary", description: null },
+    },
+
     Table: shadcnComponentDefinitions.Table,
-    Text: shadcnComponentDefinitions.Text,
+
+    Text: {
+      props: z.object({
+        text: z.string(),
+      }),
+      description: "A paragraph of body text. Use for descriptions, explanations, or secondary content.",
+      example: { text: "Additional context goes here." },
+    },
+
     Heading: shadcnComponentDefinitions.Heading,
-    Badge: shadcnComponentDefinitions.Badge,
-    Separator: shadcnComponentDefinitions.Separator,
+
+    Badge: {
+      props: z.object({
+        text: z.string(),
+      }),
+      description: "A small inline label. Use for tags, statuses, or categories.",
+      example: { text: "Active" },
+    },
+
+    Separator: {
+      props: z.object({}),
+      description: "A horizontal divider line. Use to separate sections of content.",
+      example: {},
+    },
 
     // --- Domain-specific ---
     Metric: {
