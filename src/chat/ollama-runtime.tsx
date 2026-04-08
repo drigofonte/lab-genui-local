@@ -238,19 +238,22 @@ function buildResult(
     | { type: "text"; text: string }
   > = [];
 
+  if (thinkingContent) {
+    parts.push({ type: "reasoning", text: thinkingContent });
+  }
+
   if (spec) {
-    // tool-call renders the status indicator via tool UI (with animation)
-    // and syncs spec to center panel
     parts.push({
       type: "tool-call",
       toolCallId: TOOL_CALL_ID,
       toolName: "render_ui",
       args: { spec },
     });
-  } else if (thinkingContent) {
-    parts.push({ type: "text", text: "Thinking…" });
-  } else {
-    parts.push({ type: "text", text: "Connecting to model…" });
+  }
+
+  // Fallback: empty text so assistant-ui has something to render
+  if (parts.length === 0) {
+    parts.push({ type: "text", text: "" });
   }
 
   return { content: parts as unknown as ChatModelRunResult["content"] };

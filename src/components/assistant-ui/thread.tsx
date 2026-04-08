@@ -13,6 +13,7 @@ import {
   ActionBarPrimitive,
   AuiIf,
   BranchPickerPrimitive,
+  ChainOfThoughtPrimitive,
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
@@ -24,6 +25,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CheckIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -31,6 +33,7 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
+  SparklesIcon,
   SquareIcon,
 } from "lucide-react";
 import type { FC } from "react";
@@ -163,6 +166,7 @@ const AssistantMessage: FC = () => {
       <div className="aui-assistant-message-content wrap-break-word px-2 text-foreground leading-relaxed">
         <MessagePrimitive.Parts>
           {({ part }) => {
+            if (part.type === "reasoning") return <Reasoning />;
             if (part.type === "text") return <MarkdownText />;
             if (part.type === "tool-call")
               return part.toolUI ?? <ToolFallback {...part} />;
@@ -279,5 +283,18 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
       </span>
       <BranchPickerPrimitive.Next render={<TooltipIconButton tooltip="Next" />}><ChevronRightIcon /></BranchPickerPrimitive.Next>
     </BranchPickerPrimitive.Root>
+  );
+};
+
+const Reasoning: FC = () => {
+  return (
+    <ChainOfThoughtPrimitive.Root className="my-2 rounded-lg border bg-muted/30">
+      <ChainOfThoughtPrimitive.AccordionTrigger className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 [&[data-state=open]>svg.chevron]:rotate-180">
+        <SparklesIcon className="size-3.5" />
+        <span>Thinking</span>
+        <ChevronDownIcon className="chevron ml-auto size-3.5 transition-transform" />
+      </ChainOfThoughtPrimitive.AccordionTrigger>
+      <ChainOfThoughtPrimitive.Parts className="max-h-48 overflow-y-auto border-t px-3 py-2 text-xs text-muted-foreground font-mono whitespace-pre-wrap" />
+    </ChainOfThoughtPrimitive.Root>
   );
 };
