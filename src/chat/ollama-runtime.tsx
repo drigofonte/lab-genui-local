@@ -478,9 +478,9 @@ async function* runContentPopulation(
     currentSpec: skeletonSpec as unknown as Spec,
   });
 
+  // Don't reset thinkingContent — preserve Phase 2's reasoning in the accordion
   onDiagnostics?.({
     isGenerating: true,
-    thinkingContent: "",
     rawLines: [],
     error: null,
     systemPrompt,
@@ -501,7 +501,9 @@ async function* runContentPopulation(
       return;
     }
 
-    yield buildSpecResult(event.result.thinkingContent, event.result.spec);
+    // Don't show Phase 3 reasoning — it replaces Phase 2's thinking block.
+    // Just show the spec being populated progressively.
+    yield buildSpecResult("", event.result.spec);
   }
 
   // Get final from generator return
