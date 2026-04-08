@@ -16,7 +16,6 @@ import {
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
-  Suggestions,
   SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
@@ -84,33 +83,9 @@ const ThreadScrollToBottom: FC = () => {
   );
 };
 
-const SAMPLE_SUGGESTIONS = [
-  {
-    title: "KPI Dashboard",
-    label: "4 metrics + bar chart",
-    prompt: "Show me a dashboard with 4 KPI metrics: total revenue, active users, conversion rate, and average order value. Include a bar chart of monthly revenue.",
-  },
-  {
-    title: "Team Directory",
-    label: "People table with status",
-    prompt: "Create a team directory showing 5 people with their name, role, department, and status (active/on leave). Use a table layout with a heading.",
-  },
-  {
-    title: "Product Comparison",
-    label: "Side-by-side cards",
-    prompt: "Build a product comparison layout with 3 cards side by side. Each card should have a product name, price, description, and a status badge.",
-  },
-  {
-    title: "Analytics Report",
-    label: "Metrics, chart, and table",
-    prompt: "Design an analytics report with a heading, 3 summary metrics at the top, a bar chart showing weekly data, and a detailed table of recent activity.",
-  },
-];
-
 const ThreadWelcome: FC = () => {
   return (
     <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
-      <Suggestions suggestions={SAMPLE_SUGGESTIONS} />
       <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
         <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-4">
           <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
@@ -128,7 +103,7 @@ const ThreadWelcome: FC = () => {
 
 const ThreadSuggestions: FC = () => {
   return (
-    <div className="aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 px-4 pb-4">
+    <div className="grid w-full @md:grid-cols-2 gap-2 px-4 pb-4">
       <ThreadPrimitive.Suggestions>
         {() => <ThreadSuggestionItem />}
       </ThreadPrimitive.Suggestions>
@@ -141,15 +116,10 @@ const ThreadSuggestionItem: FC = () => {
     <div className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both duration-200">
       <SuggestionPrimitive.Trigger
         send
-        render={
-          <Button
-            variant="ghost"
-            className="aui-thread-welcome-suggestion h-auto w-full flex-col items-start justify-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
-          />
-        }
+        className="flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
       >
         <SuggestionPrimitive.Title className="font-medium" />
-        <SuggestionPrimitive.Description className="text-muted-foreground text-xs empty:hidden" />
+        <SuggestionPrimitive.Description className="text-muted-foreground text-xs" />
       </SuggestionPrimitive.Trigger>
     </div>
   );
