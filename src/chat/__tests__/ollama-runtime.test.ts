@@ -103,7 +103,7 @@ describe("ollamaAdapter", () => {
     expect(toolCall.args.spec.elements["metric-1"].type).toBe("Metric");
   });
 
-  it("yields 'Thinking...' text during thinking phase, then 'Generating UI...' with spec", async () => {
+  it("yields 'Thinking…' text during thinking, then tool-call when spec arrives", async () => {
     mockFetch.mockResolvedValueOnce(
       streamingResponse([
         { thinking: "Let me think about this..." },
@@ -120,21 +120,19 @@ describe("ollamaAdapter", () => {
       results.push(result as { content: Array<Record<string, unknown>> });
     }
 
-    // During thinking: text part says "Thinking..."
+    // During thinking: text part says "Thinking…"
     const thinkingResult = results.find((r) =>
       r.content.some(
-        (p: any) => p.type === "text" && p.text === "Thinking...",
+        (p: any) => p.type === "text" && p.text === "Thinking…",
       ),
     );
     expect(thinkingResult).toBeDefined();
 
-    // After spec arrives: text part says "Generating UI..."
-    const generatingResult = results.find((r) =>
-      r.content.some(
-        (p: any) => p.type === "text" && p.text === "Generating UI...",
-      ),
+    // After spec arrives: tool-call part present (no more text status)
+    const specResult = results.find((r) =>
+      r.content.some((p: any) => p.type === "tool-call"),
     );
-    expect(generatingResult).toBeDefined();
+    expect(specResult).toBeDefined();
   });
 
   it("handles AbortSignal cancellation", async () => {

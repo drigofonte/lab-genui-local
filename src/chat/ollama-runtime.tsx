@@ -111,6 +111,9 @@ export function createOllamaAdapter(
       let currentSpec: AppSpec | null = null;
       const rawLines: string[] = [];
 
+      // Yield immediately so the user sees "Connecting..." in the chat
+      yield buildResult(thinkingContent, currentSpec);
+
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -236,8 +239,8 @@ function buildResult(
   > = [];
 
   if (spec) {
-    // Show status text + tool-call (tool UI syncs to center panel but renders nothing inline)
-    parts.push({ type: "text", text: "Generating UI..." });
+    // tool-call renders the status indicator via tool UI (with animation)
+    // and syncs spec to center panel
     parts.push({
       type: "tool-call",
       toolCallId: TOOL_CALL_ID,
@@ -245,9 +248,9 @@ function buildResult(
       args: { spec },
     });
   } else if (thinkingContent) {
-    parts.push({ type: "text", text: "Thinking..." });
+    parts.push({ type: "text", text: "Thinking…" });
   } else {
-    parts.push({ type: "text", text: "Connecting to model..." });
+    parts.push({ type: "text", text: "Connecting to model…" });
   }
 
   return { content: parts as unknown as ChatModelRunResult["content"] };
