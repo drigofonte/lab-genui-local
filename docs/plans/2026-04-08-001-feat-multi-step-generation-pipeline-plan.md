@@ -1,7 +1,7 @@
 ---
 title: "feat: Interactive content-first generation pipeline"
 type: feat
-status: active
+status: completed
 date: 2026-04-08
 origin: docs/brainstorms/2026-04-07-multi-step-generation-pipeline-requirements.md
 ---
@@ -305,7 +305,7 @@ sequenceDiagram
   **Verification:**
   - User sees phase transitions in the chat as generation progresses
 
-- [ ] **Unit 6: End-to-end integration test**
+- [x] **Unit 6: End-to-end integration test**
 
   **Goal:** Verify the full pipeline works with mocked Ollama responses across all three phases.
 
