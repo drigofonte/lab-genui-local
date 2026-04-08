@@ -1,7 +1,7 @@
 ---
 title: "feat: Conversation-first UX with Every Layout primitives"
 type: feat
-status: active
+status: completed
 date: 2026-04-05
 origin: docs/brainstorms/2026-04-05-ux-overhaul-requirements.md
 ---
@@ -307,7 +307,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - No layout shift during generation
   - Left sidebar collapses cleanly
 
-- [ ] **Unit 6: Collapsible diagnostics panel**
+- [x] **Unit 6: Collapsible diagnostics panel**
 
   **Goal:** Move the diagnostics (Raw JSON, Thinking, Errors, System Prompt) into a collapsible bottom panel in the center area.
 
@@ -343,7 +343,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - All tabs persist after generation
   - Auto-scroll works during streaming
 
-- [ ] **Unit 7: Responsive layout (tabbed mobile)**
+- [x] **Unit 7: Responsive layout (tabbed mobile)**
 
   **Goal:** On screens below ~1024px, collapse the 3-panel layout into a tabbed interface.
 
@@ -374,7 +374,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - Tab switching preserves state (chat history, rendered UI)
   - Diagnostics accessible within Preview tab
 
-- [ ] **Unit 8: Cleanup and integration test**
+- [x] **Unit 8: Cleanup and integration test**
 
   **Goal:** Remove dead code, verify the full flow end-to-end, and ensure all requirements are met.
 
