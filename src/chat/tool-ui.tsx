@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { makeAssistantToolUI } from "@assistant-ui/react";
-import { SimpleRenderer } from "@/catalog/simple-renderer";
 import type { AppSpec } from "@/catalog/catalog";
 
 type RenderUIArgs = {
@@ -8,29 +7,35 @@ type RenderUIArgs = {
 };
 
 /**
- * Tool UI component that renders the generated spec inline in assistant messages.
+ * Tool UI that syncs the generated spec to the center panel preview.
  *
- * Registered for the "render_ui" tool name. During streaming, `status.type`
- * is "running" and `args.spec` contains the partial spec built so far.
- * When complete, `status.type` is "complete".
- *
- * An optional `onSpecUpdate` callback can be used to sync the spec
- * to an external preview panel (e.g., the center panel in the app shell).
+ * Does NOT render the spec inline in the assistant message — the
+ * center panel is the canonical render surface. The chat message
+ * shows a text status ("Generating UI..." → "Generating UI... done")
+ * via the adapter's buildResult function instead.
  */
 export function createRenderUIToolUI(onSpecUpdate?: (spec: AppSpec) => void) {
   return makeAssistantToolUI<RenderUIArgs, undefined>({
     toolName: "render_ui",
-    render: ({ args }) => {
-      return <RenderUIInner spec={args?.spec} onSpecUpdate={onSpecUpdate} />;
+    render: ({ args, status }) => {
+      return (
+        <RenderUISync
+          spec={args?.spec}
+          isComplete={status.type === "complete"}
+          onSpecUpdate={onSpecUpdate}
+        />
+      );
     },
   });
 }
 
-function RenderUIInner({
+function RenderUISync({
   spec,
+  isComplete,
   onSpecUpdate,
 }: {
   spec: AppSpec | undefined;
+  isComplete: boolean;
   onSpecUpdate?: (spec: AppSpec) => void;
 }) {
   const callbackRef = useRef(onSpecUpdate);
@@ -42,17 +47,6 @@ function RenderUIInner({
     }
   }, [spec]);
 
-  if (!spec?.root) {
-    return (
-      <div className="text-sm text-muted-foreground py-2">
-        Generating UI...
-      </div>
-    );
-  }
-
-  return (
-    <div className="py-2">
-      <SimpleRenderer spec={spec} />
-    </div>
-  );
+  // Render nothing visible — the center panel shows the spec
+  return null;
 }

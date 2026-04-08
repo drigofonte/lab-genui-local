@@ -103,7 +103,7 @@ describe("ollamaAdapter", () => {
     expect(toolCall.args.spec.elements["metric-1"].type).toBe("Metric");
   });
 
-  it("yields reasoning parts for thinking chunks", async () => {
+  it("yields 'Thinking...' text during thinking phase, then 'Generating UI...' with spec", async () => {
     mockFetch.mockResolvedValueOnce(
       streamingResponse([
         { thinking: "Let me think about this..." },
@@ -120,16 +120,21 @@ describe("ollamaAdapter", () => {
       results.push(result as { content: Array<Record<string, unknown>> });
     }
 
-    // Early results should contain reasoning content
-    const reasoningResult = results.find((r) =>
-      r.content.some((p: any) => p.type === "reasoning"),
+    // During thinking: text part says "Thinking..."
+    const thinkingResult = results.find((r) =>
+      r.content.some(
+        (p: any) => p.type === "text" && p.text === "Thinking...",
+      ),
     );
-    expect(reasoningResult).toBeDefined();
+    expect(thinkingResult).toBeDefined();
 
-    const reasoning = reasoningResult!.content.find(
-      (p: any) => p.type === "reasoning",
-    ) as any;
-    expect(reasoning.text).toContain("Let me think about this...");
+    // After spec arrives: text part says "Generating UI..."
+    const generatingResult = results.find((r) =>
+      r.content.some(
+        (p: any) => p.type === "text" && p.text === "Generating UI...",
+      ),
+    );
+    expect(generatingResult).toBeDefined();
   });
 
   it("handles AbortSignal cancellation", async () => {

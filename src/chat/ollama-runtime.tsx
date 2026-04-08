@@ -236,11 +236,8 @@ function buildResult(
   > = [];
 
   if (spec) {
-    // Once we have a spec, show reasoning (invisible but in message data)
-    // and the tool-call (renders the spec via tool UI)
-    if (thinkingContent) {
-      parts.push({ type: "reasoning", text: thinkingContent });
-    }
+    // Show status text + tool-call (tool UI syncs to center panel but renders nothing inline)
+    parts.push({ type: "text", text: "Generating UI..." });
     parts.push({
       type: "tool-call",
       toolCallId: TOOL_CALL_ID,
@@ -248,9 +245,6 @@ function buildResult(
       args: { spec },
     });
   } else if (thinkingContent) {
-    // During thinking: show status text in the message bubble.
-    // Reasoning parts aren't rendered by the default Thread, so use text.
-    // This naturally disappears when the tool-call replaces it.
     parts.push({ type: "text", text: "Thinking..." });
   } else {
     parts.push({ type: "text", text: "Connecting to model..." });
