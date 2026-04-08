@@ -16,7 +16,6 @@ import {
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
-  SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
   useMessagePartReasoning,
@@ -83,6 +82,33 @@ const ThreadScrollToBottom: FC = () => {
   );
 };
 
+const WELCOME_PROMPTS = [
+  {
+    title: "KPI Dashboard",
+    label: "4 metrics + bar chart",
+    prompt:
+      "Show me a dashboard with 4 KPI metrics: total revenue, active users, conversion rate, and average order value. Include a bar chart of monthly revenue.",
+  },
+  {
+    title: "Team Directory",
+    label: "People table with status",
+    prompt:
+      "Create a team directory showing 5 people with their name, role, department, and status (active/on leave). Use a table layout with a heading.",
+  },
+  {
+    title: "Product Comparison",
+    label: "Side-by-side cards",
+    prompt:
+      "Build a product comparison layout with 3 cards side by side. Each card should have a product name, price, description, and a status badge.",
+  },
+  {
+    title: "Analytics Report",
+    label: "Metrics, chart, and table",
+    prompt:
+      "Design an analytics report with a heading, 3 summary metrics at the top, a bar chart showing weekly data, and a detailed table of recent activity.",
+  },
+];
+
 const ThreadWelcome: FC = () => {
   return (
     <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
@@ -96,32 +122,35 @@ const ThreadWelcome: FC = () => {
           </p>
         </div>
       </div>
-      <ThreadSuggestions />
+      <div className="grid w-full @md:grid-cols-2 gap-2 px-4 pb-4">
+        {WELCOME_PROMPTS.map((item, i) => (
+          <WelcomePromptCard key={item.title} {...item} delay={i * 50} />
+        ))}
+      </div>
     </div>
   );
 };
 
-const ThreadSuggestions: FC = () => {
+const WelcomePromptCard: FC<{
+  title: string;
+  label: string;
+  prompt: string;
+  delay: number;
+}> = ({ title, label, prompt, delay }) => {
   return (
-    <div className="grid w-full @md:grid-cols-2 gap-2 px-4 pb-4">
-      <ThreadPrimitive.Suggestions>
-        {() => <ThreadSuggestionItem />}
-      </ThreadPrimitive.Suggestions>
-    </div>
-  );
-};
-
-const ThreadSuggestionItem: FC = () => {
-  return (
-    <div className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both duration-200">
-      <SuggestionPrimitive.Trigger
-        send
-        className="flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
-      >
-        <SuggestionPrimitive.Title className="font-medium" />
-        <SuggestionPrimitive.Description className="text-muted-foreground text-xs" />
-      </SuggestionPrimitive.Trigger>
-    </div>
+    <ComposerPrimitive.Send
+      send={{ content: [{ type: "text", text: prompt }] }}
+      render={
+        <button
+          type="button"
+          className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      }
+    >
+      <span className="font-medium">{title}</span>
+      <span className="text-muted-foreground text-xs">{label}</span>
+    </ComposerPrimitive.Send>
   );
 };
 

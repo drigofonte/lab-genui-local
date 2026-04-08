@@ -271,53 +271,11 @@ export function OllamaRuntimeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const WELCOME_SUGGESTIONS = [
-  {
-    title: "KPI Dashboard",
-    label: "4 metrics + bar chart",
-    prompt:
-      "Show me a dashboard with 4 KPI metrics: total revenue, active users, conversion rate, and average order value. Include a bar chart of monthly revenue.",
-  },
-  {
-    title: "Team Directory",
-    label: "People table with status",
-    prompt:
-      "Create a team directory showing 5 people with their name, role, department, and status (active/on leave). Use a table layout with a heading.",
-  },
-  {
-    title: "Product Comparison",
-    label: "Side-by-side cards",
-    prompt:
-      "Build a product comparison layout with 3 cards side by side. Each card should have a product name, price, description, and a status badge.",
-  },
-  {
-    title: "Analytics Report",
-    label: "Metrics, chart, and table",
-    prompt:
-      "Design an analytics report with a heading, 3 summary metrics at the top, a bar chart showing weekly data, and a detailed table of recent activity.",
-  },
-];
-
 function OllamaRuntimeInner({ children }: { children: ReactNode }) {
   const { setState } = useDiagnosticsDispatch();
 
   const adapter = useMemo(() => createOllamaAdapter(setState), [setState]);
-  const runtime = useLocalRuntime(adapter, {
-    adapters: {
-      suggestion: {
-        async *generate({ messages }) {
-          // Show welcome suggestions only when thread is empty
-          if (messages.length === 0) {
-            yield WELCOME_SUGGESTIONS.map((s) => ({
-              prompt: s.prompt,
-              title: s.title,
-              label: s.label,
-            }));
-          }
-        },
-      },
-    },
-  });
+  const runtime = useLocalRuntime(adapter);
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
