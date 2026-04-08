@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { makeAssistantToolUI } from "@assistant-ui/react";
 import { SimpleRenderer } from "@/catalog/simple-renderer";
 import type { AppSpec } from "@/catalog/catalog";
@@ -20,25 +21,38 @@ export function createRenderUIToolUI(onSpecUpdate?: (spec: AppSpec) => void) {
   return makeAssistantToolUI<RenderUIArgs, undefined>({
     toolName: "render_ui",
     render: ({ args }) => {
-      const spec = args?.spec;
-
-      if (spec) {
-        onSpecUpdate?.(spec);
-      }
-
-      if (!spec?.root) {
-        return (
-          <div className="text-sm text-muted-foreground py-2">
-            Generating UI...
-          </div>
-        );
-      }
-
-      return (
-        <div className="py-2">
-          <SimpleRenderer spec={spec} />
-        </div>
-      );
+      return <RenderUIInner spec={args?.spec} onSpecUpdate={onSpecUpdate} />;
     },
   });
+}
+
+function RenderUIInner({
+  spec,
+  onSpecUpdate,
+}: {
+  spec: AppSpec | undefined;
+  onSpecUpdate?: (spec: AppSpec) => void;
+}) {
+  const callbackRef = useRef(onSpecUpdate);
+  callbackRef.current = onSpecUpdate;
+
+  useEffect(() => {
+    if (spec) {
+      callbackRef.current?.(spec);
+    }
+  }, [spec]);
+
+  if (!spec?.root) {
+    return (
+      <div className="text-sm text-muted-foreground py-2">
+        Generating UI...
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-2">
+      <SimpleRenderer spec={spec} />
+    </div>
+  );
 }
