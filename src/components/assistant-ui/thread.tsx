@@ -17,6 +17,7 @@ import {
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
+  useAui,
   useAuiState,
   useMessagePartReasoning,
 } from "@assistant-ui/react";
@@ -137,20 +138,22 @@ const WelcomePromptCard: FC<{
   prompt: string;
   delay: number;
 }> = ({ title, label, prompt, delay }) => {
+  const aui = useAui();
+
   return (
-    <ComposerPrimitive.Send
-      send={{ content: [{ type: "text", text: prompt }] }}
-      render={
-        <button
-          type="button"
-          className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
-          style={{ animationDelay: `${delay}ms` }}
-        />
-      }
+    <button
+      type="button"
+      className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+      style={{ animationDelay: `${delay}ms` }}
+      onClick={() => {
+        aui.thread().append({
+          content: [{ type: "text", text: prompt }],
+        });
+      }}
     >
       <span className="font-medium">{title}</span>
       <span className="text-muted-foreground text-xs">{label}</span>
-    </ComposerPrimitive.Send>
+    </button>
   );
 };
 
