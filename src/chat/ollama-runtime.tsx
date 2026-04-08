@@ -147,9 +147,10 @@ export const ollamaAdapter: ChatModelAdapter = {
         currentSpec = finalSpec;
       }
 
-      const finalResult = buildResult(thinkingContent, currentSpec);
-      finalResult.status = { type: "complete", reason: "stop" };
-      yield finalResult;
+      yield {
+        ...buildResult(thinkingContent, currentSpec),
+        status: { type: "complete" as const, reason: "stop" as const },
+      };
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         return;
@@ -171,26 +172,30 @@ function buildResult(
   thinkingContent: string,
   spec: AppSpec | null,
 ): ChatModelRunResult {
-  const content: ChatModelRunResult["content"] = [];
+  const parts: Array<
+    | { type: "reasoning"; text: string }
+    | { type: "tool-call"; toolCallId: string; toolName: string; args: Record<string, unknown> }
+    | { type: "text"; text: string }
+  > = [];
 
   if (thinkingContent) {
-    content.push({ type: "reasoning" as const, text: thinkingContent });
+    parts.push({ type: "reasoning", text: thinkingContent });
   }
 
   if (spec) {
-    content.push({
-      type: "tool-call" as const,
+    parts.push({
+      type: "tool-call",
       toolCallId: TOOL_CALL_ID,
       toolName: "render_ui",
       args: { spec },
     });
   }
 
-  if (content.length === 0) {
-    content.push({ type: "text" as const, text: "" });
+  if (parts.length === 0) {
+    parts.push({ type: "text", text: "" });
   }
 
-  return { content: content as ChatModelRunResult["content"] };
+  return { content: parts as unknown as ChatModelRunResult["content"] };
 }
 
 /**

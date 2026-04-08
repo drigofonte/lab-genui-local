@@ -237,7 +237,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
 
 ### Phase 2: App Shell Restructure
 
-- [ ] **Unit 4: Install assistant-ui and create Ollama ChatModelAdapter**
+- [x] **Unit 4: Install assistant-ui and create Ollama ChatModelAdapter**
 
   **Goal:** Install `@assistant-ui/react`, create the custom runtime adapter that wraps our existing Ollama streaming logic.
 
@@ -272,7 +272,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - assistant-ui Thread renders messages with streaming content
   - Specs appear as tool-call rendered UI in assistant messages
 
-- [ ] **Unit 5: App shell layout with Every Layout Sidebar**
+- [x] **Unit 5: App shell layout with Every Layout Sidebar**
 
   **Goal:** Restructure App.tsx into the VS Code-inspired 3-panel layout using Every Layout's Sidebar primitive.
 

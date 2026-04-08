@@ -82,11 +82,11 @@ describe("ollamaAdapter", () => {
       ]),
     );
 
-    const results: Array<{ content: unknown[] }> = [];
+    const results: Array<{ content: Array<Record<string, unknown>> }> = [];
     const gen = ollamaAdapter.run(makeRunOptions("show me revenue"));
 
     for await (const result of gen as AsyncGenerator) {
-      results.push(result);
+      results.push(result as { content: Array<Record<string, unknown>> });
     }
 
     // Should have yielded results during streaming
@@ -113,11 +113,11 @@ describe("ollamaAdapter", () => {
       ]),
     );
 
-    const results: Array<{ content: unknown[] }> = [];
+    const results: Array<{ content: Array<Record<string, unknown>> }> = [];
     const gen = ollamaAdapter.run(makeRunOptions("show me revenue"));
 
     for await (const result of gen as AsyncGenerator) {
-      results.push(result);
+      results.push(result as { content: Array<Record<string, unknown>> });
     }
 
     // Early results should contain reasoning content
@@ -142,13 +142,13 @@ describe("ollamaAdapter", () => {
       new DOMException("The operation was aborted.", "AbortError"),
     );
 
-    const results: unknown[] = [];
+    const results: Array<{ content: Array<Record<string, unknown>> }> = [];
     const gen = ollamaAdapter.run(
       makeRunOptions("test", controller.signal),
     );
 
     for await (const result of gen as AsyncGenerator) {
-      results.push(result);
+      results.push(result as { content: Array<Record<string, unknown>> });
     }
 
     // Should not have yielded any error content — just silently returns
@@ -160,11 +160,11 @@ describe("ollamaAdapter", () => {
       new TypeError("Failed to fetch"),
     );
 
-    const results: Array<{ content: unknown[] }> = [];
+    const results: Array<{ content: Array<Record<string, unknown>> }> = [];
     const gen = ollamaAdapter.run(makeRunOptions("test"));
 
     for await (const result of gen as AsyncGenerator) {
-      results.push(result);
+      results.push(result as { content: Array<Record<string, unknown>> });
     }
 
     expect(results.length).toBeGreaterThan(0);
@@ -181,11 +181,11 @@ describe("ollamaAdapter", () => {
       new Response("Internal Server Error", { status: 500 }),
     );
 
-    const results: Array<{ content: unknown[] }> = [];
+    const results: Array<{ content: Array<Record<string, unknown>> }> = [];
     const gen = ollamaAdapter.run(makeRunOptions("test"));
 
     for await (const result of gen as AsyncGenerator) {
-      results.push(result);
+      results.push(result as { content: Array<Record<string, unknown>> });
     }
 
     const lastResult = results[results.length - 1];
