@@ -4,7 +4,6 @@ import { createRenderUIToolUI } from "@/chat/tool-ui";
 import { Thread } from "@/components/assistant-ui/thread";
 import { AppSidebar } from "@/components/AppSidebar";
 import { RenderArea } from "@/components/RenderArea";
-import { GenerationStatus } from "@/components/GenerationStatus";
 import { DebugPanel } from "@/components/DebugPanel";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import { Sidebar } from "@/components/layout";
@@ -73,7 +72,6 @@ function App() {
           >
             <div className="flex h-full flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-4">
-                <GenerationStatus />
                 <RenderArea spec={spec} />
               </div>
               <DiagnosticsToggle
