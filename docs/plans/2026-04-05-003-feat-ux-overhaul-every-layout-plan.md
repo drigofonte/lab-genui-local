@@ -135,7 +135,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
 
 ### Phase 1: Every Layout Primitives
 
-- [ ] **Unit 1: Every Layout CSS foundation + modular scale**
+- [x] **Unit 1: Every Layout CSS foundation + modular scale**
 
   **Goal:** Add the Every Layout CSS classes and modular scale custom properties to the project.
 
@@ -161,7 +161,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - CSS classes added and correctly scoped
   - No Tailwind build errors
 
-- [ ] **Unit 2: Every Layout React components**
+- [x] **Unit 2: Every Layout React components**
 
   **Goal:** Create thin React wrapper components for all 8 Every Layout primitives.
 
@@ -201,7 +201,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - CSS custom properties are applied correctly via the `style` attribute
   - Components compose (e.g., Stack inside Sidebar) without layout conflicts
 
-- [ ] **Unit 3: Register Every Layout components in catalog + SimpleRenderer**
+- [x] **Unit 3: Register Every Layout components in catalog + SimpleRenderer**
 
   **Goal:** Add Every Layout primitives to the json-render catalog so the LLM can generate specs using them. Register in SimpleRenderer for rendering. Replace existing Stack/Grid definitions.
 
