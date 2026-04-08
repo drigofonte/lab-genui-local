@@ -83,22 +83,25 @@ function Card({ props, children }: { props: any; children?: React.ReactNode }) {
 
 function Heading({ props }: { props: any }) {
   const level = props.level ?? "h2";
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
   const sizeMap: Record<string, string> = { h1: "text-4xl", h2: "text-3xl", h3: "text-2xl", h4: "text-xl" };
   const className = `font-bold tracking-tight ${sizeMap[level] ?? "text-2xl"}`;
-  if (level === "h1") return <h1 className={className}>{props.text}</h1>;
-  if (level === "h3") return <h3 className={className}>{props.text}</h3>;
-  if (level === "h4") return <h4 className={className}>{props.text}</h4>;
-  return <h2 className={className}>{props.text}</h2>;
+  if (level === "h1") return <h1 className={className}>{text}</h1>;
+  if (level === "h3") return <h3 className={className}>{text}</h3>;
+  if (level === "h4") return <h4 className={className}>{text}</h4>;
+  return <h2 className={className}>{text}</h2>;
 }
 
 function Text({ props }: { props: any }) {
-  return <p className="text-sm text-muted-foreground">{props.text}</p>;
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
+  return <p className="text-sm text-muted-foreground">{text}</p>;
 }
 
 function Badge({ props }: { props: any }) {
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
   return (
     <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
-      {props.text}
+      {text}
     </span>
   );
 }
