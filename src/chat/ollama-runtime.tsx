@@ -81,7 +81,12 @@ export function createOllamaAdapter(
       }
 
       if (!response.ok) {
-        const text = await response.text();
+        let text: string;
+        try {
+          text = await response.text();
+        } catch {
+          text = "(could not read response body)";
+        }
         const errorMsg = `Error: Ollama returned HTTP ${response.status}: ${text}`;
         onDiagnostics?.({ error: errorMsg, isGenerating: false });
         yield { content: [{ type: "text" as const, text: errorMsg }] };
@@ -150,8 +155,35 @@ export function createOllamaAdapter(
               }
             }
 
-            // Yield cumulative content
             yield buildResult(thinkingContent, currentSpec);
+          }
+        }
+
+        // Flush decoder and process any remaining buffered line
+        // (Ollama may not end the last chunk with a trailing newline)
+        buffer += decoder.decode();
+        if (buffer.trim()) {
+          try {
+            const chunk = JSON.parse(buffer) as Record<string, unknown>;
+            const message = chunk.message as
+              | { thinking?: string; content?: string }
+              | undefined;
+            if (message?.content) {
+              const { result, newPatches } = compiler.push(message.content);
+              if (newPatches.length > 0) {
+                for (const patch of newPatches) {
+                  rawLines.push(JSON.stringify(patch));
+                }
+                currentSpec = { ...result } as AppSpec;
+                onDiagnostics?.({ rawLines: [...rawLines] });
+              }
+            }
+            if (message?.thinking) {
+              thinkingContent += message.thinking;
+              onDiagnostics?.({ thinkingContent });
+            }
+          } catch {
+            // Buffer wasn't valid JSON — nothing to process
           }
         }
 
@@ -181,6 +213,8 @@ export function createOllamaAdapter(
         const errorMsg = `Error: ${err instanceof Error ? err.message : String(err)}`;
         onDiagnostics?.({ error: errorMsg, isGenerating: false });
         yield { content: [{ type: "text" as const, text: errorMsg }] };
+      } finally {
+        reader.cancel().catch(() => {});
       }
     },
   };
