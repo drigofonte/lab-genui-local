@@ -16,7 +16,6 @@ import {
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
-  SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
   useMessagePartReasoning,
@@ -83,39 +82,67 @@ const ThreadScrollToBottom: FC = () => {
   );
 };
 
+const SAMPLE_PROMPTS = [
+  {
+    title: "KPI Dashboard",
+    prompt: "Show me a dashboard with 4 KPI metrics: total revenue, active users, conversion rate, and average order value. Include a bar chart of monthly revenue.",
+  },
+  {
+    title: "Team Directory",
+    prompt: "Create a team directory showing 5 people with their name, role, department, and status (active/on leave). Use a table layout with a heading.",
+  },
+  {
+    title: "Product Comparison",
+    prompt: "Build a product comparison layout with 3 cards side by side. Each card should have a product name, price, description, and a status badge.",
+  },
+  {
+    title: "Analytics Report",
+    prompt: "Design an analytics report with a heading, 3 summary metrics at the top, a bar chart showing weekly data, and a detailed table of recent activity.",
+  },
+];
+
 const ThreadWelcome: FC = () => {
   return (
     <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
       <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
         <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-4">
           <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
-            Hello there!
+            GenUI Local
           </h1>
-          <p className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200">
-            How can I help you today?
+          <p className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-base delay-75 duration-200">
+            Describe a UI and a local LLM will generate it. Try one of these:
           </p>
         </div>
       </div>
-      <ThreadSuggestions />
+      <PromptSuggestions />
     </div>
   );
 };
 
-const ThreadSuggestions: FC = () => {
+const PromptSuggestions: FC = () => {
   return (
-    <div className="aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 pb-4">
-      <ThreadPrimitive.Suggestions>
-        {() => <ThreadSuggestionItem />}
-      </ThreadPrimitive.Suggestions>
+    <div className="grid w-full grid-cols-2 gap-2 px-4 pb-4">
+      {SAMPLE_PROMPTS.map((item) => (
+        <PromptCard key={item.title} title={item.title} prompt={item.prompt} />
+      ))}
     </div>
   );
 };
 
-const ThreadSuggestionItem: FC = () => {
+const PromptCard: FC<{ title: string; prompt: string }> = ({ title, prompt }) => {
   return (
-    <div className="aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-2 @md:nth-[n+3]:block nth-[n+3]:hidden animate-in fill-mode-both duration-200">
-      <SuggestionPrimitive.Trigger send render={<Button variant="ghost" className="aui-thread-welcome-suggestion h-auto w-full @md:flex-col flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted" />}><SuggestionPrimitive.Title className="aui-thread-welcome-suggestion-text-1 font-medium" /><SuggestionPrimitive.Description className="aui-thread-welcome-suggestion-text-2 text-muted-foreground empty:hidden" /></SuggestionPrimitive.Trigger>
-    </div>
+    <ComposerPrimitive.Send
+      send={{ content: [{ type: "text", text: prompt }] }}
+      render={
+        <button
+          type="button"
+          className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both flex h-auto w-full flex-col items-start gap-1 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors duration-200 hover:bg-muted"
+        />
+      }
+    >
+      <span className="font-medium">{title}</span>
+      <span className="line-clamp-2 text-muted-foreground text-xs">{prompt}</span>
+    </ComposerPrimitive.Send>
   );
 };
 
