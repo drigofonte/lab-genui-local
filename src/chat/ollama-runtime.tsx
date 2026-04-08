@@ -8,7 +8,6 @@ import {
 import { createSpecStreamCompiler, type Spec } from "@json-render/core";
 import { catalog, type AppSpec } from "@/catalog/catalog";
 import { MODEL_NAME, OLLAMA_BASE_URL, NUM_PREDICT } from "@/adapter/config";
-import { formatSampleDataForPrompt } from "@/adapter/sample-data";
 import {
   DiagnosticsProvider,
   useDiagnosticsDispatch,
@@ -29,9 +28,7 @@ export function createOllamaAdapter(
   return {
     async *run({ messages, abortSignal }) {
       const systemPrompt = catalog.prompt();
-      const sampleDataContext = formatSampleDataForPrompt();
-
-      onDiagnostics?.({
+        onDiagnostics?.({
         isGenerating: true,
         thinkingContent: "",
         rawLines: [],
@@ -51,7 +48,7 @@ export function createOllamaAdapter(
             .join("\n")
         : "";
 
-      const userMessage = `${userText}\n\n${sampleDataContext}`;
+      const userMessage = userText;
 
       let response: Response;
       try {
