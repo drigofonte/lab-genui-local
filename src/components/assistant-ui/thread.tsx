@@ -13,13 +13,13 @@ import {
   ActionBarPrimitive,
   AuiIf,
   BranchPickerPrimitive,
-  ChainOfThoughtPrimitive,
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
   SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
+  useMessagePartReasoning,
 } from "@assistant-ui/react";
 import {
   ArrowDownIcon,
@@ -36,7 +36,7 @@ import {
   SparklesIcon,
   SquareIcon,
 } from "lucide-react";
-import type { FC } from "react";
+import { useState, type FC } from "react";
 
 export const Thread: FC = () => {
   return (
@@ -287,14 +287,33 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
 };
 
 const Reasoning: FC = () => {
+  const { text, status } = useMessagePartReasoning();
+  const [open, setOpen] = useState(status === "in_progress");
+
   return (
-    <ChainOfThoughtPrimitive.Root className="my-2 rounded-lg border bg-muted/30">
-      <ChainOfThoughtPrimitive.AccordionTrigger className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 [&[data-state=open]>svg.chevron]:rotate-180">
+    <div className="my-2 rounded-lg border bg-muted/30">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+      >
         <SparklesIcon className="size-3.5" />
         <span>Thinking</span>
-        <ChevronDownIcon className="chevron ml-auto size-3.5 transition-transform" />
-      </ChainOfThoughtPrimitive.AccordionTrigger>
-      <ChainOfThoughtPrimitive.Parts className="max-h-48 overflow-y-auto border-t px-3 py-2 text-xs text-muted-foreground font-mono whitespace-pre-wrap" />
-    </ChainOfThoughtPrimitive.Root>
+        {status === "in_progress" && (
+          <span className="inline-block size-2 animate-pulse rounded-full bg-foreground" />
+        )}
+        <ChevronDownIcon
+          className={cn(
+            "ml-auto size-3.5 transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      {open && (
+        <pre className="max-h-48 overflow-y-auto border-t px-3 py-2 text-xs text-muted-foreground font-mono whitespace-pre-wrap">
+          {text}
+        </pre>
+      )}
+    </div>
   );
 };
