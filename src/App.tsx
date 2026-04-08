@@ -1,92 +1,119 @@
-import { useState, useCallback, useRef } from "react";
-import { PromptInput } from "@/components/PromptInput";
+import { useState, useCallback } from "react";
+import { OllamaRuntimeProvider } from "@/chat/ollama-runtime";
+import { createRenderUIToolUI } from "@/chat/tool-ui";
+import { Thread } from "@/components/assistant-ui/thread";
+import { AppSidebar } from "@/components/AppSidebar";
 import { RenderArea } from "@/components/RenderArea";
 import { DebugPanel } from "@/components/DebugPanel";
-import { generateUI, type GenerationResult, type StreamProgress } from "@/adapter/ollama";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { Sidebar } from "@/components/layout";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { AppSpec } from "@/catalog/catalog";
 
 function App() {
   const [spec, setSpec] = useState<AppSpec | null>(null);
-  const [rawJson, setRawJson] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState<StreamProgress | null>(null);
-  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"chat" | "preview">("chat");
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
-  const handleProgress = useCallback((p: StreamProgress) => {
-    setProgress(p);
-    // Progressive rendering: update spec as patches arrive
-    if (p.spec) {
-      setSpec(p.spec);
-    }
+  const handleSpecUpdate = useCallback((newSpec: AppSpec) => {
+    setSpec(newSpec);
+    setMobileTab("preview");
   }, []);
 
-  async function handleGenerate(prompt: string) {
-    setIsLoading(true);
-    setError(null);
-    setSpec(null);
-    setRawJson(null);
-    setProgress(null);
-    // Auto-open debug panel when generation starts
-    if (detailsRef.current) {
-      detailsRef.current.open = true;
-    }
+  const RenderUIToolUI = createRenderUIToolUI(handleSpecUpdate);
 
-    const result: GenerationResult = await generateUI(prompt, handleProgress);
-    setSystemPrompt(result.systemPrompt);
+  if (isMobile) {
+    return (
+      <OllamaRuntimeProvider>
+        <TooltipProvider>
+          <RenderUIToolUI />
+          <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+            <MobileTabBar activeTab={mobileTab} onTabChange={setMobileTab} />
 
-    if (result.status === "success") {
-      setSpec(result.spec);
-      setRawJson(result.rawJson);
-      setError(null);
-    } else {
-      setSpec(null);
-      setRawJson(result.rawResponse || null);
-      setError(result.error);
-    }
-
-    setIsLoading(false);
+            {mobileTab === "chat" ? (
+              <div className="flex-1 overflow-hidden">
+                <Thread />
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-4">
+                  <RenderArea spec={spec} />
+                </div>
+                <DiagnosticsToggle
+                  open={diagOpen}
+                  onToggle={() => setDiagOpen((o) => !o)}
+                />
+              </div>
+            )}
+          </div>
+        </TooltipProvider>
+      </OllamaRuntimeProvider>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-7xl p-6">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold">GenUI Local</h1>
-          <p className="text-sm text-muted-foreground">
-            Describe a UI and a local LLM will generate it
-          </p>
-        </header>
+    <OllamaRuntimeProvider>
+      <TooltipProvider>
+        <RenderUIToolUI />
+        <div className="flex h-screen overflow-hidden bg-background text-foreground">
+          <AppSidebar />
 
-        <div className="mb-6">
-          <PromptInput onGenerate={handleGenerate} isLoading={isLoading} progress={progress} />
+          <Sidebar
+            side="right"
+            sideWidth="380px"
+            contentMin="40%"
+            space="0px"
+            className="flex-1 min-w-0"
+          >
+            <div className="flex h-full flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4">
+                <RenderArea spec={spec} />
+              </div>
+              <DiagnosticsToggle
+                open={diagOpen}
+                onToggle={() => setDiagOpen((o) => !o)}
+              />
+            </div>
+
+            <div className="h-full border-l">
+              <Thread />
+            </div>
+          </Sidebar>
         </div>
+      </TooltipProvider>
+    </OllamaRuntimeProvider>
+  );
+}
 
-        <div className="space-y-6">
-          <div>
-            <h2 className="mb-2 text-sm font-medium text-muted-foreground">
-              Rendered Output
-            </h2>
-            <RenderArea spec={spec} />
-          </div>
-
-          <details ref={detailsRef} className="group">
-            <summary className="mb-2 flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-muted-foreground">
-              <span className="transition-transform group-open:rotate-90">&#9654;</span>
-              Debug
-            </summary>
-            <DebugPanel
-              rawJson={rawJson}
-              error={error}
-              systemPrompt={systemPrompt}
-              streamLines={progress?.rawLines ?? null}
-              thinkingContent={progress?.thinkingContent ?? null}
-              isGenerating={isLoading}
-            />
-          </details>
+function DiagnosticsToggle({
+  open,
+  onToggle,
+}: {
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border-t">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
+      >
+        <span
+          className="transition-transform"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        >
+          &#9654;
+        </span>
+        Diagnostics
+      </button>
+      {open && (
+        <div className="h-64 overflow-hidden border-t">
+          <DebugPanel />
         </div>
-      </div>
+      )}
     </div>
   );
 }

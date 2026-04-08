@@ -83,22 +83,25 @@ function Card({ props, children }: { props: any; children?: React.ReactNode }) {
 
 function Heading({ props }: { props: any }) {
   const level = props.level ?? "h2";
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
   const sizeMap: Record<string, string> = { h1: "text-4xl", h2: "text-3xl", h3: "text-2xl", h4: "text-xl" };
   const className = `font-bold tracking-tight ${sizeMap[level] ?? "text-2xl"}`;
-  if (level === "h1") return <h1 className={className}>{props.text}</h1>;
-  if (level === "h3") return <h3 className={className}>{props.text}</h3>;
-  if (level === "h4") return <h4 className={className}>{props.text}</h4>;
-  return <h2 className={className}>{props.text}</h2>;
+  if (level === "h1") return <h1 className={className}>{text}</h1>;
+  if (level === "h3") return <h3 className={className}>{text}</h3>;
+  if (level === "h4") return <h4 className={className}>{text}</h4>;
+  return <h2 className={className}>{text}</h2>;
 }
 
 function Text({ props }: { props: any }) {
-  return <p className="text-sm text-muted-foreground">{props.text}</p>;
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
+  return <p className="text-sm text-muted-foreground">{text}</p>;
 }
 
 function Badge({ props }: { props: any }) {
+  const text = typeof props.text === "string" ? props.text : JSON.stringify(props.text);
   return (
     <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
-      {props.text}
+      {text}
     </span>
   );
 }
@@ -158,6 +161,36 @@ const COMPONENTS: Record<string, React.ComponentType<{ props: any; children?: Re
   BarGraph: BarGraph as any,
 };
 
+/**
+ * Known prop fields that the LLM sometimes puts at the element level
+ * instead of inside `props`. We merge these into props so components
+ * receive them correctly.
+ */
+const KNOWN_PROP_FIELDS = new Set([
+  "text", "label", "value", "description", "trend", "level",
+  "title", "data", "color", "columns", "rows", "caption",
+  "ratio", "space", "side", "sideWidth", "contentMin",
+  "min", "threshold", "limit", "padding", "borderWidth",
+  "minHeight", "noPad", "itemWidth", "height", "noBar",
+  "maxWidth", "centerText", "gutters", "intrinsic",
+  "justify", "align", "recursive", "splitAfter",
+]);
+
+/**
+ * Merge props from element-level fields into the props object.
+ * Handles common LLM mistake of placing props at the wrong level.
+ */
+function resolveProps(element: any): any {
+  const props = { ...(element.props ?? {}) };
+  for (const key of Object.keys(element)) {
+    if (key === "type" || key === "props" || key === "children" || key === "visible" || key === "on" || key === "repeat") continue;
+    if (KNOWN_PROP_FIELDS.has(key) && !(key in props)) {
+      props[key] = element[key];
+    }
+  }
+  return props;
+}
+
 function RenderElement({ spec, elementKey }: { spec: AppSpec; elementKey: string }) {
   const elements = spec.elements as Record<string, any> | undefined;
   if (!elements) return null;
@@ -169,15 +202,30 @@ function RenderElement({ spec, elementKey }: { spec: AppSpec; elementKey: string
     return <div className="text-sm text-destructive">Unknown component: {element.type}</div>;
   }
 
+  const props = resolveProps(element);
+
   const childNodes = (element.children ?? []).map((childKey: string) => (
     <RenderElement key={childKey} spec={spec} elementKey={childKey} />
   ));
 
   return (
-    <Component props={element.props ?? {}}>
+    <Component props={props}>
       {childNodes.length > 0 ? childNodes : undefined}
     </Component>
   );
+}
+
+/**
+ * Find all element keys that are not referenced as children of any other element.
+ */
+function findOrphanKeys(elements: Record<string, any>): string[] {
+  const allChildKeys = new Set<string>();
+  for (const el of Object.values(elements)) {
+    for (const childKey of el.children ?? []) {
+      allChildKeys.add(childKey);
+    }
+  }
+  return Object.keys(elements).filter((k) => !allChildKeys.has(k));
 }
 
 export function SimpleRenderer({ spec }: { spec: AppSpec }) {
@@ -185,28 +233,47 @@ export function SimpleRenderer({ spec }: { spec: AppSpec }) {
   const elements = spec.elements as Record<string, any> | undefined;
   if (!elements) return null;
 
-  // If root key exists in elements, use it directly
-  if (elements[spec.root]) {
+  const rootElement = elements[spec.root];
+
+  if (rootElement) {
+    const hasChildren = rootElement.children && rootElement.children.length > 0;
+
+    if (hasChildren) {
+      // Normal case: root has children, render the tree
+      return <RenderElement spec={spec} elementKey={spec.root} />;
+    }
+
+    // Root exists but has no children — check if there are orphaned elements
+    // that should be its children (common LLM mistake: defines elements but
+    // forgets to connect them via children arrays)
+    const orphanKeys = findOrphanKeys(elements).filter((k) => k !== spec.root);
+
+    if (orphanKeys.length > 0) {
+      // Inject orphans as children of the root element and render
+      const fixedSpec = {
+        ...spec,
+        elements: {
+          ...elements,
+          [spec.root]: {
+            ...rootElement,
+            children: orphanKeys,
+          },
+        },
+      } as AppSpec;
+      return <RenderElement spec={fixedSpec} elementKey={spec.root} />;
+    }
+
+    // Root with no children and no orphans — render as-is
     return <RenderElement spec={spec} elementKey={spec.root} />;
   }
 
-  // Fallback: LLM sometimes generates a root key that doesn't match any
-  // element key. Find elements not referenced as children — those are
-  // top-level elements the LLM forgot to wrap in a parent.
-  const allChildKeys = new Set<string>();
-  for (const el of Object.values(elements)) {
-    for (const childKey of el.children ?? []) {
-      allChildKeys.add(childKey);
-    }
-  }
-  const orphanKeys = Object.keys(elements).filter((k) => !allChildKeys.has(k));
+  // Root key doesn't match any element — find orphans
+  const orphanKeys = findOrphanKeys(elements);
 
   if (orphanKeys.length === 1) {
     return <RenderElement spec={spec} elementKey={orphanKeys[0]} />;
   }
 
-  // Multiple orphans: render them all in a Stack (the LLM likely intended
-  // a parent wrapper but forgot to create it)
   if (orphanKeys.length > 1) {
     return (
       <div className="stack" style={{ "--space": "var(--space-m)" } as React.CSSProperties}>

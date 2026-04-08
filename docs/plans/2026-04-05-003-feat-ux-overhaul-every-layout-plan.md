@@ -1,7 +1,7 @@
 ---
 title: "feat: Conversation-first UX with Every Layout primitives"
 type: feat
-status: active
+status: completed
 date: 2026-04-05
 origin: docs/brainstorms/2026-04-05-ux-overhaul-requirements.md
 ---
@@ -135,7 +135,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
 
 ### Phase 1: Every Layout Primitives
 
-- [ ] **Unit 1: Every Layout CSS foundation + modular scale**
+- [x] **Unit 1: Every Layout CSS foundation + modular scale**
 
   **Goal:** Add the Every Layout CSS classes and modular scale custom properties to the project.
 
@@ -161,7 +161,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - CSS classes added and correctly scoped
   - No Tailwind build errors
 
-- [ ] **Unit 2: Every Layout React components**
+- [x] **Unit 2: Every Layout React components**
 
   **Goal:** Create thin React wrapper components for all 8 Every Layout primitives.
 
@@ -201,7 +201,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - CSS custom properties are applied correctly via the `style` attribute
   - Components compose (e.g., Stack inside Sidebar) without layout conflicts
 
-- [ ] **Unit 3: Register Every Layout components in catalog + SimpleRenderer**
+- [x] **Unit 3: Register Every Layout components in catalog + SimpleRenderer**
 
   **Goal:** Add Every Layout primitives to the json-render catalog so the LLM can generate specs using them. Register in SimpleRenderer for rendering. Replace existing Stack/Grid definitions.
 
@@ -237,7 +237,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
 
 ### Phase 2: App Shell Restructure
 
-- [ ] **Unit 4: Install assistant-ui and create Ollama ChatModelAdapter**
+- [x] **Unit 4: Install assistant-ui and create Ollama ChatModelAdapter**
 
   **Goal:** Install `@assistant-ui/react`, create the custom runtime adapter that wraps our existing Ollama streaming logic.
 
@@ -272,7 +272,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - assistant-ui Thread renders messages with streaming content
   - Specs appear as tool-call rendered UI in assistant messages
 
-- [ ] **Unit 5: App shell layout with Every Layout Sidebar**
+- [x] **Unit 5: App shell layout with Every Layout Sidebar**
 
   **Goal:** Restructure App.tsx into the VS Code-inspired 3-panel layout using Every Layout's Sidebar primitive.
 
@@ -307,7 +307,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - No layout shift during generation
   - Left sidebar collapses cleanly
 
-- [ ] **Unit 6: Collapsible diagnostics panel**
+- [x] **Unit 6: Collapsible diagnostics panel**
 
   **Goal:** Move the diagnostics (Raw JSON, Thinking, Errors, System Prompt) into a collapsible bottom panel in the center area.
 
@@ -343,7 +343,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - All tabs persist after generation
   - Auto-scroll works during streaming
 
-- [ ] **Unit 7: Responsive layout (tabbed mobile)**
+- [x] **Unit 7: Responsive layout (tabbed mobile)**
 
   **Goal:** On screens below ~1024px, collapse the 3-panel layout into a tabbed interface.
 
@@ -374,7 +374,7 @@ Restructure the app using assistant-ui and Every Layout, replacing the current f
   - Tab switching preserves state (chat history, rendered UI)
   - Diagnostics accessible within Preview tab
 
-- [ ] **Unit 8: Cleanup and integration test**
+- [x] **Unit 8: Cleanup and integration test**
 
   **Goal:** Remove dead code, verify the full flow end-to-end, and ensure all requirements are met.
 
