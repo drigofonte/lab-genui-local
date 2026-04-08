@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { OllamaRuntimeProvider } from "@/chat/ollama-runtime";
 import { createRenderUIToolUI } from "@/chat/tool-ui";
 import { Thread } from "@/components/assistant-ui/thread";
@@ -11,18 +11,12 @@ import type { AppSpec } from "@/catalog/catalog";
 
 function App() {
   const [spec, setSpec] = useState<AppSpec | null>(null);
-  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [diagOpen, setDiagOpen] = useState(false);
 
-  const handleSpecUpdate = useCallback(
-    (newSpec: AppSpec) => {
-      setSpec(newSpec);
-      // Auto-open debug panel on first spec update
-      if (detailsRef.current && !detailsRef.current.open) {
-        detailsRef.current.open = true;
-      }
-    },
-    [],
-  );
+  const handleSpecUpdate = useCallback((newSpec: AppSpec) => {
+    setSpec(newSpec);
+    setDiagOpen(true);
+  }, []);
 
   // Create the tool UI component with the spec update callback
   const RenderUIToolUI = createRenderUIToolUI(handleSpecUpdate);
@@ -49,24 +43,29 @@ function App() {
                 <RenderArea spec={spec} />
               </div>
 
-              <details ref={detailsRef} className="group border-t">
-                <summary className="flex cursor-pointer list-none items-center gap-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50">
-                  <span className="transition-transform group-open:rotate-90">
+              {/* Collapsible diagnostics panel */}
+              <div className="border-t">
+                <button
+                  type="button"
+                  onClick={() => setDiagOpen((o) => !o)}
+                  className="flex w-full items-center gap-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50"
+                >
+                  <span
+                    className="transition-transform"
+                    style={{
+                      transform: diagOpen ? "rotate(90deg)" : "rotate(0deg)",
+                    }}
+                  >
                     &#9654;
                   </span>
                   Diagnostics
-                </summary>
-                <div className="h-64 overflow-hidden border-t">
-                  <DebugPanel
-                    rawJson={null}
-                    error={null}
-                    systemPrompt={null}
-                    streamLines={null}
-                    thinkingContent={null}
-                    isGenerating={false}
-                  />
-                </div>
-              </details>
+                </button>
+                {diagOpen && (
+                  <div className="h-64 overflow-hidden border-t">
+                    <DebugPanel />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right panel: chat thread */}
