@@ -9,15 +9,13 @@ import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { useDiagnostics } from "@/chat/diagnostics-context";
 
 export function DebugPanel() {
-  const { rawJson, error, systemPrompt, rawLines, thinkingContent, isGenerating } = useDiagnostics();
+  const { rawJson, error, systemPrompt, rawLines, isGenerating } = useDiagnostics();
   const [activeTab, setActiveTab] = useState("patches");
   const hasPatches = rawLines.length > 0;
-  const isThinking = isGenerating && thinkingContent.length > 0;
 
   const patchesDisplay = hasPatches ? rawLines.join("\n") : null;
 
   const patchesScrollRef = useAutoScroll<HTMLPreElement>(patchesDisplay);
-  const thinkingScrollRef = useAutoScroll<HTMLPreElement>(thinkingContent || null);
 
   const dot = <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />;
 
@@ -31,10 +29,6 @@ export function DebugPanel() {
           </TabsTrigger>
           <TabsTrigger value="json" className="text-xs">
             Raw JSON
-          </TabsTrigger>
-          <TabsTrigger value="thinking" className="text-xs">
-            Thinking
-            {isThinking && dot}
           </TabsTrigger>
           <TabsTrigger value="errors" className="text-xs">
             Errors
@@ -67,18 +61,6 @@ export function DebugPanel() {
           ) : (
             <p className="text-sm text-muted-foreground">
               {isGenerating ? "JSON will appear after generation completes." : "No response yet. Generate a UI to see the raw output."}
-            </p>
-          )}
-        </TabsContent>
-
-        <TabsContent value="thinking" className="flex-1 overflow-hidden p-3">
-          {thinkingContent ? (
-            <pre ref={thinkingScrollRef} className="h-full overflow-auto whitespace-pre-wrap text-xs font-mono text-muted-foreground">
-              {thinkingContent}
-            </pre>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No thinking output available.
             </p>
           )}
         </TabsContent>

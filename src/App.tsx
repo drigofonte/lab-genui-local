@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { OllamaRuntimeProvider } from "@/chat/ollama-runtime";
 import { createRenderUIToolUI } from "@/chat/tool-ui";
 import { Thread } from "@/components/assistant-ui/thread";
@@ -16,30 +16,13 @@ function App() {
   const [diagOpen, setDiagOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<"chat" | "preview">("chat");
   const isMobile = useMediaQuery("(max-width: 1023px)");
-  const hasAutoOpened = useRef(false);
 
   const handleSpecUpdate = useCallback((newSpec: AppSpec) => {
     setSpec(newSpec);
-    // Auto-open diagnostics only once per generation, not on every patch
-    if (!hasAutoOpened.current) {
-      hasAutoOpened.current = true;
-      setDiagOpen(true);
-    }
     setMobileTab("preview");
   }, []);
 
-  // Reset the auto-open flag when a new generation starts
-  // (detected by spec going from non-null back to a different root)
-  const prevRootRef = useRef<string | undefined>(undefined);
-  const handleSpecUpdateWrapped = useCallback((newSpec: AppSpec) => {
-    if (newSpec.root !== prevRootRef.current) {
-      hasAutoOpened.current = false;
-      prevRootRef.current = newSpec.root;
-    }
-    handleSpecUpdate(newSpec);
-  }, [handleSpecUpdate]);
-
-  const RenderUIToolUI = createRenderUIToolUI(handleSpecUpdateWrapped);
+  const RenderUIToolUI = createRenderUIToolUI(handleSpecUpdate);
 
   if (isMobile) {
     return (

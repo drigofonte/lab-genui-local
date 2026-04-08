@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, act } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { DebugPanel } from "../DebugPanel";
 import { DiagnosticsProvider, useDiagnosticsDispatch } from "@/chat/diagnostics-context";
 import type { DiagnosticsState } from "@/chat/diagnostics-context";
@@ -7,10 +7,6 @@ import { useEffect } from "react";
 
 afterEach(cleanup);
 
-/**
- * Helper to render DebugPanel with a DiagnosticsProvider
- * and optionally set initial diagnostics state.
- */
 function renderWithDiagnostics(initialState?: Partial<DiagnosticsState>) {
   function Initializer({ state }: { state?: Partial<DiagnosticsState> }) {
     const { setState } = useDiagnosticsDispatch();
@@ -44,15 +40,12 @@ describe("DebugPanel — controlled tab state", () => {
         <DebugPanel />
       </DiagnosticsProvider>,
     );
-    // Switch to errors tab
     fireEvent.click(screen.getByText("Errors"));
-    // Re-render
     rerender(
       <DiagnosticsProvider>
         <DebugPanel />
       </DiagnosticsProvider>,
     );
-    // Errors tab content should still be visible
     expect(screen.getByText("No errors.")).toBeTruthy();
   });
 
@@ -76,22 +69,20 @@ describe("DebugPanel — controlled tab state", () => {
   });
 });
 
-describe("DebugPanel — Thinking tab", () => {
-  it("always shows the Thinking tab", () => {
+describe("DebugPanel — tabs", () => {
+  it("does not show a Thinking tab", () => {
     renderWithDiagnostics();
-    expect(screen.getByText("Thinking")).toBeTruthy();
+    expect(screen.queryByText("Thinking")).toBeNull();
   });
 
-  it("shows thinking content when provided", () => {
-    renderWithDiagnostics({ thinkingContent: "Model reasoning..." });
-    fireEvent.click(screen.getByText("Thinking"));
-    expect(screen.getByText("Model reasoning...")).toBeTruthy();
+  it("shows Errors tab", () => {
+    renderWithDiagnostics();
+    expect(screen.getByText("Errors")).toBeTruthy();
   });
 
-  it("shows fallback message when no thinking content", () => {
+  it("shows System Prompt tab", () => {
     renderWithDiagnostics();
-    fireEvent.click(screen.getByText("Thinking"));
-    expect(screen.getByText("No thinking output available.")).toBeTruthy();
+    expect(screen.getByText("System Prompt")).toBeTruthy();
   });
 });
 
@@ -108,15 +99,5 @@ describe("DebugPanel — auto-scroll", () => {
   it("renders without errors when content is empty", () => {
     const { container } = renderWithDiagnostics();
     expect(container.firstChild).not.toBeNull();
-  });
-
-  it("attaches ref to thinking pre element", () => {
-    renderWithDiagnostics({ thinkingContent: "Thinking..." });
-    fireEvent.click(screen.getByText("Thinking"));
-    const pres = document.querySelectorAll("pre");
-    const thinkingPre = Array.from(pres).find((p) =>
-      p.textContent?.includes("Thinking..."),
-    );
-    expect(thinkingPre).not.toBeNull();
   });
 });
